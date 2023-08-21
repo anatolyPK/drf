@@ -1,29 +1,29 @@
 from django.http import HttpResponse
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, status
 from rest_framework.permissions import IsAuthenticated
-from services import get_portfolio
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from .services import get_portfolio
 from .models import PersonsCrypto, PersonsTransactions
-from .serializers import CryptoSerializer, CryptoTransactionsSerializer
+from .serializers import CryptoSerializer, CryptoTransactionsSerializer, DataSerializer
 
 
 class CryptoBalance(generics.ListAPIView):
-    def get(self, request, *args, **kwargs):
-        data = PersonsCrypto.objects.all().filter(person_id=self.request.user.id)
-        return HttpResponse(get_portfolio(personal_assets=data, is_crypto=True))
+    permission_classes = (IsAuthenticated, )
 
-    # serializer_class = CryptoSerializer
-    # permission_classes = (IsAuthenticated, )
-    #
-    # def get_queryset(self):
-    #     data = PersonsCrypto.objects.all().filter(person_id=self.request.user.id)
-    #     return get_portfolio(personal_assets=data, is_crypto=True)
-    #     # print(portfolio.total_balance)
-        # print(portfolio.get_portfolio_profit())
+    def get(self, request, *args, **kwargs):
+        balance = get_portfolio(user_id=self.request.user.id, is_crypto=True)
+        return HttpResponse(DataSerializer.serialize_data(balance))
 
 
 class CryptoAddTransactions(generics.CreateAPIView):
     queryset = PersonsTransactions.objects.all()
     serializer_class = CryptoTransactionsSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_create(self, serializer):
+        serializer.save(person_id=self.request.user.id)
 
 
 class CryptoHistoryTransactions(generics.ListAPIView):

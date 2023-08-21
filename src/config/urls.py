@@ -18,11 +18,9 @@ from django.contrib import admin
 from django.template.defaulttags import url
 from django.urls import path, include, re_path
 from rest_framework import routers
-
+from crypto.urls import crypto_patterns
 from crypto.views import CryptoBalance,  CryptoAddTransactions, CryptoHistoryTransactions
 
-# router = routers.SimpleRouter()
-# router.register(r'crypto', CryptoViewSet, basename='crypto')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,7 +28,5 @@ urlpatterns = [
     path('api/v1/auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 
-    path('api/v1/crypto/', CryptoBalance.as_view()),
-    path('api/v1/crypto/add/', CryptoAddTransactions.as_view()),
-    path('api/v1/crypto/history/', CryptoHistoryTransactions.as_view()),
+    path('api/v1/crypto/', include(crypto_patterns)),
 ]

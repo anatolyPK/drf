@@ -4,7 +4,7 @@ class PersonsPortfolio:
         self.buy_price = 0
         self.tickers = {}
 
-    def add_active(self, ident: str, lot: float, average_price_buy: float, current_price: float):
+    def add_active_in_persons_portfolio(self, ident: str, lot: float, average_price_buy: float, current_price: float):
         """Добавление актива в портфель"""
         self.total_balance += current_price * lot
         self.buy_price += average_price_buy * lot
@@ -22,7 +22,7 @@ class PersonsPortfolio:
         if is_get_profit_in_percents:
             params_dict['profit_in_percents'] = count_percent_profit(self.buy_price, self.total_balance)
         if is_get_profit_in_currency:
-            params_dict['profit_in_percents'] = self.total_balance - self.buy_price
+            params_dict['profit_in_currency'] = self.total_balance - self.buy_price
         if is_get_assets:
             params_dict['assets'] = {ticker: (self.tickers[ticker].lot, self.tickers[ticker].average_price_buy,
                                               self.tickers[ticker].current_price) for ticker in self.tickers}
@@ -47,11 +47,12 @@ class AssetsInfo:
 
 def count_percent_profit(num_1: int, num_2: int):
     """Считает изменение стоимости с num_1 до num_2 актива в процентах"""
-    average_cost = num_1
-    percent_from_average_to_current_price = round((num_2 / average_cost - 1) * 100, 1)
-    if percent_from_average_to_current_price > 0:
-        return '+' + str(percent_from_average_to_current_price)
-    return percent_from_average_to_current_price
+    return round((num_2 / num_1 - 1) * 100, 1)
+
+
+def get_new_average_price(old_price, new_price, old_size, new_size):
+    """Рассчитывает новую среднюю стоимость актива"""
+    return round((old_size * old_price + new_size * new_price) / (new_size + old_size), 1)
 
 
 
