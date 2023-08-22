@@ -10,7 +10,7 @@ class PersonsPortfolio:
         self.buy_price += average_price_buy * lot
         self.tickers[ident] = AssetsInfo(ident, lot, average_price_buy, current_price)
 
-    def get_portfolio_profit(self):
+    def get_portfolio_profit_from_average_to_current_price(self):
         return count_percent_profit(self.buy_price, self.total_balance)
 
     def check_and_returns_params(self, is_get_total_balance,  is_get_profit_in_currency,
@@ -47,12 +47,16 @@ class AssetsInfo:
 
 def count_percent_profit(num_1: int, num_2: int):
     """Считает изменение стоимости с num_1 до num_2 актива в процентах"""
-    return round((num_2 / num_1 - 1) * 100, 1)
+    try:
+        return round((num_2 / num_1 - 1) * 100, 1)
+    except ZeroDivisionError:
+        return 0
 
 
 def get_new_average_price(old_price, new_price, old_size, new_size):
     """Рассчитывает новую среднюю стоимость актива"""
     return round((old_size * old_price + new_size * new_price) / (new_size + old_size), 1)
+
 
 
 

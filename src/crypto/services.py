@@ -1,5 +1,5 @@
 import django.db.models
-from .models import PersonsCrypto
+from .models import PersonsCrypto, PersonsTransactions
 from .crypto_services import PersonsPortfolio, get_new_average_price
 from .binanceAPI import BinanceAPI
 
@@ -37,11 +37,22 @@ def add_change_in_persons_portfolio(transaction):
                                                             new_price=transaction.price,
                                                             old_size=persons_asset.size,
                                                             new_size=transaction.lot)
-        persons_asset.size = persons_asset.size + transaction.lot
+        persons_asset.size += transaction.lot if transaction.is_buy_or_sell else -transaction.lot
         persons_asset.save(update_fields=['size', 'average_price'])
     else:
         new_active = PersonsCrypto(person_id=transaction.person_id,
                                    token=transaction.token_1,
-                                   size=transaction.lot,
+                                   size=transaction.lot if transaction.is_buy_or_sell else -transaction.lot,
                                    average_price=transaction.price)
         new_active.save()
+
+
+def add_reverse_transaction(**kwargs):
+    reverse_transaction = PersonsTransactions(person_id=kwargs['person_id'],
+                                              token_1=kwargs['token_2'],
+                                              token_2=kwargs['token_1'],
+                                              is_buy_or_sell=not kwargs['is_buy_or_sell'],
+                                              price=1/kwargs['price'],
+                                              lot=kwargs['lot']*kwargs['price'])
+    reverse_transaction.save()
+    add_change_in_persons_portfolio(reverse_transaction)

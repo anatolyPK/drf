@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.renderers import JSONRenderer
 
-from .services import add_change_in_persons_portfolio
+from .services import add_change_in_persons_portfolio, add_reverse_transaction
 from .models import PersonsCrypto,  PersonsTransactions
 
 
@@ -18,6 +18,7 @@ class CryptoTransactionsSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         transaction = PersonsTransactions.objects.create(**validated_data)
+        add_reverse_transaction(**validated_data)
         add_change_in_persons_portfolio(transaction)
         return transaction
 
