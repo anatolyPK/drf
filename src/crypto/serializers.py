@@ -18,8 +18,8 @@ class CryptoTransactionsSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         transaction = PersonsTransactions.objects.create(**validated_data)
-        add_reverse_transaction(**validated_data)
         add_change_in_persons_portfolio(transaction)
+        add_reverse_transaction(**validated_data)
         return transaction
 
 

@@ -20,7 +20,7 @@ class BinanceAPI:
     def __get_price_of_ticker(client, tickers: list):
         """Возвращает словарь тикер: текущая цена"""
         tickers = [value.upper() for value in tickers]
-        symbols_and_prices = {ticker: None for ticker in tickers}
+        symbols_and_prices = {ticker: 0 for ticker in tickers}
 
         values = client.get_all_tickers()
         for pair in values:
