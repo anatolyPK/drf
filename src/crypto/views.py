@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .services import get_portfolio
+from .crypto_services import PersonsPortfolio
 from .models import PersonsCrypto, PersonsTransactions
 from .serializers import CryptoSerializer, CryptoTransactionsSerializer, DataSerializer
 
@@ -13,8 +13,8 @@ class CryptoBalance(generics.ListAPIView): #why APIView
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, *args, **kwargs):
-        balance = get_portfolio(user_id=self.request.user.id, is_crypto=True)
-        return HttpResponse(DataSerializer.serialize_data(balance))
+        balance = PersonsPortfolio(type_of_assets='crypto', person_id=request.user.id)
+        return HttpResponse(DataSerializer.serialize_data(balance.returns_info_about_portfolio_and_assets()))
 
 
 class CryptoAddTransactions(generics.CreateAPIView):
