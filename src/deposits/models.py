@@ -23,6 +23,7 @@ class PersonsDeposits(models.Model):
 
 class PersonDepositsTransactions(models.Model):
     person_id = models.IntegerField()
+    deposit_id = models.IntegerField()
     is_add_or_take = models.BooleanField()
     size = models.FloatField()
     date_operation = models.DateTimeField(auto_now_add=True)

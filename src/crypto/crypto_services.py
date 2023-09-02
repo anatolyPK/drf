@@ -99,7 +99,3 @@ class AssetsInfo:
     def get_new_average_price(old_price, new_price, old_size, new_size):
         """Рассчитывает новую среднюю стоимость актива"""
         return round((old_size * old_price + new_size * new_price) / (new_size + old_size), 1)
-
-
-
-

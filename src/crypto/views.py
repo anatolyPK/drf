@@ -9,7 +9,7 @@ from .models import PersonsCrypto, PersonsTransactions
 from .serializers import CryptoSerializer, CryptoTransactionsSerializer, DataSerializer
 
 
-class CryptoBalance(generics.ListAPIView): #why APIView
+class CryptoBalance(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, *args, **kwargs):

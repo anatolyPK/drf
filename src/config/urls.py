@@ -15,11 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.template.defaulttags import url
 from django.urls import path, include, re_path
 from rest_framework import routers
+
 from crypto.urls import crypto_patterns
-from crypto.views import CryptoBalance,  CryptoAddTransactions, CryptoHistoryTransactions
+from deposits.urls import deposits_patterns
 
 
 urlpatterns = [
@@ -29,4 +29,6 @@ urlpatterns = [
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 
     path('api/v1/crypto/', include(crypto_patterns)),
+
+    path('api/v1/', include(deposits_patterns))
 ]

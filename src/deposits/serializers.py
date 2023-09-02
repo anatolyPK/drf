@@ -1,29 +1,23 @@
 from rest_framework import serializers
 from rest_framework.renderers import JSONRenderer
 
-from .services import add_change_in_persons_portfolio, add_reverse_transaction
-from .models import PersonsCrypto,  PersonsTransactions
+from .models import PersonsDeposits, PersonDepositsTransactions
+from .services import add_or_take_sum_from_deposit
 
 
-class CryptoSerializer(serializers.ModelSerializer):
+class PersonsDepositsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PersonsCrypto
-        fields = '__all__'
+        model = PersonsDeposits
+        fields = ["id", "deposits_summ", "description", "percent", "percent_capitalization", "date_open"]
 
 
-class CryptoTransactionsSerializer(serializers.ModelSerializer):
+class PersonsDepositsTransactionsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PersonsTransactions
-        fields = ['is_buy_or_sell', 'token_1',  'token_2', 'price', 'lot']
+        model = PersonDepositsTransactions
+        fields = ['deposit_id', 'is_add_or_take', 'size', 'date_operation']
 
     def create(self, validated_data):
-        transaction = PersonsTransactions.objects.create(**validated_data)
-        add_change_in_persons_portfolio(transaction)
-        add_reverse_transaction(**validated_data)
+        transaction = PersonDepositsTransactions.objects.create(**validated_data)
+        add_or_take_sum_from_deposit(transaction)
         return transaction
 
-
-class DataSerializer:
-    @staticmethod
-    def serialize_data(data: dict) -> JSONRenderer:
-        return JSONRenderer().render(data)

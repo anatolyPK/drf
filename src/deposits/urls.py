@@ -1,8 +1,16 @@
-from django.urls import path
-from crypto.views import CryptoBalance,  CryptoAddTransactions, CryptoHistoryTransactions
+from django.urls import path, include
+from rest_framework import routers
 
-crypto_patterns = [
-    path('', CryptoBalance.as_view()),
-    path('add/', CryptoAddTransactions.as_view()),
-    path('history/', CryptoHistoryTransactions.as_view()),
-    ]
+from .views import DepositsViewSets, DepositsTransactions
+
+
+router = routers.SimpleRouter()
+router.register(r'deposits', DepositsViewSets)
+
+
+deposits_patterns = [
+    path('deposits/transaction/', DepositsTransactions.as_view()),
+    path('', include(router.urls)),
+]
+
+
