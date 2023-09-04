@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.renderers import JSONRenderer
 
 from .models import PersonsDeposits, PersonDepositsTransactions
 from .services import add_or_take_sum_from_deposit

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -8,7 +9,7 @@ class PersonsDeposits(models.Model):
         ('annually', 'annually')
     ]
 
-    person_id = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     deposits_summ = models.FloatField(null=True)
     description = models.CharField(max_length=256)
     is_open = models.BooleanField(default=1)
@@ -18,11 +19,11 @@ class PersonsDeposits(models.Model):
     date_change = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.person_id) + '  ' + str(self.description)
+        return str(self.user) + '  ' + str(self.description)
 
 
 class PersonDepositsTransactions(models.Model):
-    person_id = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     deposit_id = models.IntegerField()
     is_add_or_take = models.BooleanField()
     size = models.FloatField()

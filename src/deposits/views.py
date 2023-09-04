@@ -13,14 +13,14 @@ class DepositsViewSets(viewsets.ViewSet):
     queryset = PersonsDeposits.objects.all()
 
     def list(self, request):
-        queryset = PersonsDeposits.objects.filter(person_id=self.request.user.id)
+        queryset = PersonsDeposits.objects.filter(user=request.user)
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(person_id=self.request.user.id)
+        serializer.save(user=self.request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, pk=None):  #добавить авто подстановку времени ообновления
@@ -37,5 +37,5 @@ class DepositsTransactions(generics.CreateAPIView):
     queryset = PersonDepositsTransactions.objects.all()
 
     def perform_create(self, serializer):
-        serializer.save(person_id=self.request.user.id)
+        serializer.save(user=self.request.user)
         return Response(serializer.data)

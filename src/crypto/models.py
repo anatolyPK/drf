@@ -1,18 +1,19 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
 class PersonsCrypto(models.Model):
-    person_id = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=3)
     token = models.CharField(max_length=16)
-    size = models.FloatField()
+    lot = models.FloatField()
     average_price = models.FloatField()
 
     def __str__(self):
-        return str(self.person_id) + '  ' + str(self.token)
+        return str(self.user) + '  ' + str(self.token)
 
 
 class PersonsTransactions(models.Model):
-    person_id = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=3)
     is_buy_or_sell = models.BooleanField()
     token_1 = models.CharField(max_length=16)
     token_2 = models.CharField(max_length=16)

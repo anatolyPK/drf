@@ -20,6 +20,7 @@ from rest_framework import routers
 
 from crypto.urls import crypto_patterns
 from deposits.urls import deposits_patterns
+from stocks.urls import stocks_patterns
 
 
 urlpatterns = [
@@ -29,6 +30,6 @@ urlpatterns = [
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 
     path('api/v1/crypto/', include(crypto_patterns)),
-
+    path('api/v1/', include(stocks_patterns)),
     path('api/v1/', include(deposits_patterns))
 ]

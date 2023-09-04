@@ -13,4 +13,5 @@ deposits_patterns = [
     path('', include(router.urls)),
 ]
 
+from .apschedulers_tasks import *
 
