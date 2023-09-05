@@ -9,3 +9,4 @@ schedulers.add_job(deposits_job.add_deposits_capitalization,
                    hour=00,
                    minute=1
                    )
+

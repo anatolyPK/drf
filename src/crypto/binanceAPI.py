@@ -18,16 +18,17 @@ class BinanceAPI:
 
     @staticmethod
     def __get_price_of_ticker(client, tickers: list):
-        """Возвращает словарь тикер: текущая цена"""
+        """Возвращает словарь тикер: текущая цена, а также
+        курс usdt/rub"""
+
         tickers = [value.upper() for value in tickers]
-        symbols_and_prices = {ticker: 0 for ticker in tickers}
+        tickers.append('USDTRUB')
+        tickers_and_prices = {ticker: 0 for ticker in tickers}
 
         values = client.get_all_tickers()
         for pair in values:
             if pair['symbol'] in tickers:
-                symbols_and_prices[pair['symbol']] = float(pair['price'])
-        return symbols_and_prices
-
-
+                tickers_and_prices[pair['symbol']] = float(pair['price'])
+        return tickers_and_prices
 
 
