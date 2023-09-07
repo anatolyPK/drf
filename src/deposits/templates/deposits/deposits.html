@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<ul class="list-articles">
+	{% for deposit in deposits %}
+			<li><div class="article-panel">
+	<p class="first">Описание: {{deposit.description}}  Сумма: {{deposit.deposits_summ}}  Процент: {{deposit.percent}}  % </p>
+	{% endfor %}
+</div>
+</ul>
+
+    {%endblock%}

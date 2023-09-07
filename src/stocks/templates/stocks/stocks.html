@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col"></th>
+        <th scope="col">
+            <p class="h5">{{balance.total_balance_in_rub}} ₽</p>
+            <p class="h6">{{balance.profit_in_currency}} ₽ {{balance.profit_in_percents}} % ₽</p>
+        </th>
+        <th scope="col">
+            <p class="h5">{{balance.total_balance}} $</p>
+            <p class="h6">{{balance.profit_in_currency}} ₽ {{balance.profit_in_percents}} % ₽</p>
+        </th>
+        <th scope="col"></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for value in assets.values %}
+    <tr>
+        <th scope="row"> {{ forloop.counter}}</th>
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ value.name.upper }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        {{ value.lot }} шт. &nbsp {{ value.average_price_buy }} {{value.currency}}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-right">
+                <div class="row">
+                    <div class="col">
+                        {{ value.total_now_balance }} {{value.currency}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        {{ value.profit_in_currency }} {{value.currency}} &nbsp {{ value.profit_in_percent }}%
+                    </div>
+                </div>
+            </div>
+        </td>
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+{%endblock%}
