@@ -1,7 +1,7 @@
 
 from .models import PersonsTransactions
 from services.portfolio import PersonsPortfolio
-from services.add_change_in_portfolio import PersonsPortfolio
+from services.add_change_in_user_assets import AssetsChange
 
 
 def add_reverse_transaction(**kwargs):
@@ -15,8 +15,8 @@ def add_reverse_transaction(**kwargs):
                                               price=1/kwargs['price'],
                                               lot=kwargs['lot']*kwargs['price'])
 
-    PersonsPortfolio.update_persons_portfolio(transaction=reverse_transaction,
-                                              assets_type='crypto')
+    AssetsChange.update_persons_portfolio(transaction=reverse_transaction,
+                                            assets_type='crypto')
 
 
 

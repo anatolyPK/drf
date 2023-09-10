@@ -1,4 +1,6 @@
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 
@@ -21,10 +23,7 @@ class UserTransaction(models.Model):
         (1, 'Покупка'),
         (0, 'Продажа'),
     ]
-    # CHOICES_CURRENCY = [
-    #     ('rub', 'Покупка'),
-    #     ('usd', 'Продажа'),
-    # ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_buy_or_sell = models.BooleanField(verbose_name='Операция', choices=CHOICES_OPERATION_TYPE)
     figi = models.CharField(max_length=16, verbose_name='figi инструмента')
@@ -38,11 +37,16 @@ class UserTransaction(models.Model):
         return self.figi
 
 
+class AssetsList:
+    figi = models.CharField(max_length=16)
+    name = models.CharField(max_length=128)
+
+
 class CommonAssetsInfo(models.Model):
     figi = models.CharField(max_length=16)
     ticker = models.CharField(max_length=10)
     name = models.CharField(max_length=128)
-    currency = models.CharField(max_length=10, verbose_name='Валюта актива')
+    currency = models.CharField( max_length=10, verbose_name='Валюта актива')
     buy_available_flag = models.BooleanField(verbose_name='Доступна ли для покупки')
     sell_available_flag = models.BooleanField(verbose_name='Доступна ли для продажи')
     for_iis_flag = models.BooleanField(verbose_name='Доступна ли для ИИС')

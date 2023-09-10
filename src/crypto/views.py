@@ -1,24 +1,52 @@
 from django.http import HttpResponse
-from django.shortcuts import get_list_or_404, render
+from django.shortcuts import get_list_or_404, render, redirect
+from django.views.generic import ListView
 from rest_framework import generics, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from services.add_change_in_user_assets import AssetsChange
 from services.portfolio import PersonsPortfolio, CryptoPortfolio
+from .forms import AddCryptoForm
 from .models import PersonsCrypto, PersonsTransactions
 from .serializers import CryptoSerializer, CryptoTransactionsSerializer, DataSerializer
 
-from deposits.utils import menu
+from deposits.utils import menu, DataMixin
 
 
-def persons_crypto(request):
-    crypto_portfolio = CryptoPortfolio(user=request.user)
-    context = {'balance': crypto_portfolio.get_info_about_portfolio(),
-               'assets': crypto_portfolio.get_info_about_assets(),
-               'menu': menu
-               }
-    return render(request, 'crypto/cryptos.html', context)
+class CryptoPersonBalance(ListView, DataMixin):
+    model = PersonsCrypto
+    template_name = 'crypto/cryptos.html'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context_from_mixin = self.get_user_context(**kwargs)
+
+        crypto_portfolio = CryptoPortfolio(user=self.request.user)
+
+        context['balance'] = crypto_portfolio.get_info_about_portfolio()
+        context['assets'] = crypto_portfolio.get_info_about_assets()
+
+        return context | context_from_mixin
+
+
+def add_transaction(request):
+    if request.method == 'POST':
+        form = AddCryptoForm(request.POST)
+        if form.is_valid():
+            selected_asset = form.cleaned_data['names_asset']
+            AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='stock',
+                                               user=request.user,
+                                               is_buy_or_sell=int(form.data['is_buy_or_sell']),
+                                               figi=selected_asset.figi,
+                                               lot=float(form.data['lot']),
+                                               price_currency=float(form.data['price_in_currency']),
+                                               currency=form.data['currency'])
+            return redirect('stocks:stocks')
+    else:
+        form = AddCryptoForm()
+    return render(request, 'crypto/add_crypto.html', {'form': form, 'menu': menu})
 
 
 class CryptoBalance(generics.ListAPIView):

@@ -1,15 +1,17 @@
-from django.shortcuts import render
-from django.views.generic import ListView, CreateView
+from django.shortcuts import render, redirect
+from django.views.generic import ListView
 from rest_framework import generics, viewsets, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from deposits.utils import menu, DataMixin
-from services.portfolio import PersonsPortfolio, StockPortfolio
+from deposits.utils import DataMixin, menu
+from services.add_change_in_user_assets import AssetsChange
+from services.portfolio import StockPortfolio
 from .forms import AddStockForm
 from .models import UserStock, UserTransaction
 from .serializers import UserStocksSerializer, UserTransactionSerializer
+from .services.tinkoff_API import TinkoffAPI
 
 
 class PersonStock(ListView, DataMixin):
@@ -28,17 +30,34 @@ class PersonStock(ListView, DataMixin):
         return context | context_from_mixin
 
 
-class PersonTransaction(CreateView, DataMixin):
-    form_class = AddStockForm
-    template_name = 'stocks/add_stock.html'
+# class PersonTransaction(CreateView, DataMixin):
+#     pass
+#     form_class = AddStockForm
+#     template_name = 'stocks/add_stock.html'
+#
+#     def get_context_data(self, *, object_list=None, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context_from_mixin = self.get_user_context(**kwargs)
+#         context['title'] = 'Добавление актива'
+#         return context | context_from_mixin
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context_from_mixin = self.get_user_context(**kwargs)
-        context['title'] = 'Добавление актива'
-        return context | context_from_mixin
 
-
+def add_stock_transaction(request):
+    if request.method == 'POST':
+        form = AddStockForm(request.POST)
+        if form.is_valid():
+            selected_asset = form.cleaned_data['names_asset']
+            AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='stock',
+                                               user=request.user,
+                                               is_buy_or_sell=int(form.data['is_buy_or_sell']),
+                                               figi=selected_asset.figi,
+                                               lot=float(form.data['lot']),
+                                               price_currency=float(form.data['price_in_currency']),
+                                               currency=form.data['currency'])
+            return redirect('stocks:stocks')
+    else:
+        form = AddStockForm()
+    return render(request, 'stocks/add_stock.html', {'form': form, 'menu': menu})
 
 
 class StockViewSets(viewsets.ViewSet):

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import UserStock, UserTransaction
-from services.add_change_in_portfolio import PersonsPortfolio
+from services.add_change_in_user_assets import AssetsChange
 
 
 class UserStocksSerializer(serializers.ModelSerializer):
@@ -17,6 +17,6 @@ class UserTransactionSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         transaction = UserTransaction.objects.create(**validated_data)
-        PersonsPortfolio.update_persons_portfolio(transaction=transaction,
+        AssetsChange.update_persons_portfolio(transaction=transaction,
                                                   assets_type='stock')
         return transaction

@@ -1,6 +1,17 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<p>
+<div>
+
+</div>
+</p>
+
+
+<a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить актив</a>
+
+
+
 
 <table class="table">
     <thead>
@@ -8,11 +19,11 @@
         <th scope="col"></th>
         <th scope="col">
             <p class="h5">{{balance.total_balance_in_rub}} ₽</p>
-            <p class="h6">{{balance.profit_in_currency}} ₽ {{balance.profit_in_percents}} % ₽</p>
+            <p class="h6">{{balance.profit_in_currency_rub}} ₽ {{balance.profit_in_percents_rub}} % ₽</p>
         </th>
         <th scope="col">
-            <p class="h5">{{balance.total_balance}} $</p>
-            <p class="h6">{{balance.profit_in_currency}} ₽ {{balance.profit_in_percents}} % ₽</p>
+            <p class="h5">{{balance.total_balance_in_usd}} $</p>
+            <p class="h6">{{balance.profit_in_currency_usd}} ₽ {{balance.profit_in_percents_usd}} % ₽</p>
         </th>
         <th scope="col"></th>
     </tr>
@@ -30,7 +41,7 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        {{ value.lot }} шт. &nbsp {{ value.average_price_buy }} {{value.currency}}
+                        {{ value.lot }} шт. &nbsp {{ value.average_price_buy_in_usd }} {{value.currency}}
                     </div>
                 </div>
             </div>
@@ -40,12 +51,12 @@
             <div class="container text-right">
                 <div class="row">
                     <div class="col">
-                        {{ value.total_now_balance }} {{value.currency}}
+                        {{ value.total_now_balance_in_usd }} {{value.currency}}
                     </div>
                 </div>
                 <div class="row">
                     <div class="col">
-                        {{ value.profit_in_currency }} {{value.currency}} &nbsp {{ value.profit_in_percent }}%
+                        {{ value.profit_in_currency_usd }} {{value.currency}} &nbsp {{ value.profit_in_percent_usd }}%
                     </div>
                 </div>
             </div>
