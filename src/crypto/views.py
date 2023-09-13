@@ -35,26 +35,29 @@ def add_transaction(request):
     if request.method == 'POST':
         form = AddCryptoForm(request.POST)
         if form.is_valid():
-            selected_asset = form.cleaned_data['names_asset']
-            AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='stock',
-                                               user=request.user,
-                                               is_buy_or_sell=int(form.data['is_buy_or_sell']),
-                                               figi=selected_asset.figi,
-                                               lot=float(form.data['lot']),
-                                               price_currency=float(form.data['price_in_currency']),
-                                               currency=form.data['currency'])
-            return redirect('stocks:stocks')
+            AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='crypto',
+                                                                       user=request.user,
+                                                                       is_buy_or_sell=int(form.data['is_buy_or_sell']),
+                                                                       token_1=form.data['token_1'].lower(),
+                                                                       token_2=form.data['token_2'].lower(),
+                                                                       lot=float(form.data['lot']),
+                                                                       price_currency=
+                                                                       float(form.data['price_in_currency']),
+                                                                       currency='usd' if form.data['token_2'] != 'rub'
+                                                                       else 'rub',
+                                                                       date_operation=form.data['operation_date'])
+            return redirect('crypto:add_crypto')
     else:
         form = AddCryptoForm()
     return render(request, 'crypto/add_crypto.html', {'form': form, 'menu': menu})
 
 
 class CryptoBalance(generics.ListAPIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
         balance = CryptoPortfolio(user=request.user)
-        return Response(balance.get_info_about_portfolio_and_assets()) #настроить ввод параметров в функцию
+        return Response(balance.get_info_about_portfolio_and_assets())  # настроить ввод параметров в функцию
 
 
 class CryptoAddTransactions(generics.CreateAPIView):
@@ -69,4 +72,3 @@ class CryptoAddTransactions(generics.CreateAPIView):
 class CryptoHistoryTransactions(generics.ListAPIView):
     queryset = PersonsTransactions.objects.all()
     serializer_class = CryptoTransactionsSerializer
-

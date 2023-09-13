@@ -22,7 +22,10 @@ class BinanceAPI:
         курс usdt/rub"""
 
         tickers = [value.upper() for value in tickers]
-        tickers.append('USDTRUB')
+
+        if 'USDTRUB' not in tickers:
+            tickers.append('USDTRUB')
+
         tickers_and_prices = {ticker: 0 for ticker in tickers}
 
         values = client.get_all_tickers()

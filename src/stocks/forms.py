@@ -1,10 +1,6 @@
 from django import forms
-from django.core.exceptions import ValidationError
-
-from itertools import chain
-
-from config import settings
 from stocks.models import UserTransaction, Share, Bond
+from datetime import datetime
 
 
 class NameModelChoiceField(forms.ModelChoiceField):
@@ -33,3 +29,4 @@ class AddStockForm(forms.Form):
     lot = forms.FloatField(label="Количество")
     price_in_currency = forms.FloatField(label='Цена')
     currency = forms.ChoiceField(label='Валюта', choices=CHOICES_CURRENCY)
+    operation_date = forms.DateField(label="Дата операции", initial=datetime.now().date)

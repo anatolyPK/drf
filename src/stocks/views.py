@@ -53,8 +53,9 @@ def add_stock_transaction(request):
                                                figi=selected_asset.figi,
                                                lot=float(form.data['lot']),
                                                price_currency=float(form.data['price_in_currency']),
-                                               currency=form.data['currency'])
-            return redirect('stocks:stocks')
+                                               currency=form.data['currency'],
+                                                                       date_operation=form.data['operation_date'])
+            return redirect('stocks:add_stock')
     else:
         form = AddStockForm()
     return render(request, 'stocks/add_stock.html', {'form': form, 'menu': menu})

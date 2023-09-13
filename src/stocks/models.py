@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from datetime import  datetime
 
 
 class UserStock(models.Model):
@@ -31,7 +32,7 @@ class UserTransaction(models.Model):
     price_in_rub = models.FloatField(verbose_name='Цена на момент покупки в рублях', default=0)
     price_in_usd = models.FloatField(verbose_name='Цена на момент покупки в долларах', default=0)
     lot = models.FloatField(verbose_name='Количество актива')
-    date_operation = models.DateTimeField(auto_now_add=True)
+    date_operation = models.DateField(default=datetime.now())
 
     def __str__(self):
         return self.figi
