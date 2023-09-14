@@ -1,11 +1,13 @@
-FROM python:3.10.2
-RUN pip install pipenv
-RUN mkdir /code
-WORKDIR /code
-COPY Pipfile* /code/
+FROM python:3.10.2-alpine3.14
 
+COPY requirements.txt /temp/requirements.txt
 
+EXPOSE 8000
 
-RUN pipenv install celery
-RUN pipenv install --system --deploy --ignore-pipfile
-ADD config /code/
+RUN pip install -r /temp/requirements.txt
+
+COPY . /src
+
+RUN adduser --disabled-password src-user
+
+USER src-user

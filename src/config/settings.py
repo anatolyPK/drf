@@ -120,6 +120,13 @@ USE_TZ = True
 # DJANGO_SETTINGS_MODULE = 'src.settings'
 # settings.configure(DEBUG=True)
 
+LOG_DIR = os.path.join(BASE_DIR, 'log')
+LOG_FILE = '/information.log'
+LOG_PATH = LOG_DIR + LOG_FILE
+
+if not os.path.exists(LOG_DIR):
+    os.mkdir(LOG_DIR)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -138,7 +145,7 @@ LOGGING = {
         "file": {
             "class": "logging.FileHandler",
             "formatter": "main_format",
-            "filename": "information.log"
+            "filename": LOG_PATH
         },
     },
 
