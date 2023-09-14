@@ -46,14 +46,15 @@ def add_stock_transaction(request):
     if request.method == 'POST':
         form = AddStockForm(request.POST)
         if form.is_valid():
-            selected_asset = form.cleaned_data['names_asset']
+            selected_asset = form.cleaned_data['assets_name']
             AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='stock',
-                                               user=request.user,
-                                               is_buy_or_sell=int(form.data['is_buy_or_sell']),
-                                               figi=selected_asset.figi,
-                                               lot=float(form.data['lot']),
-                                               price_currency=float(form.data['price_in_currency']),
-                                               currency=form.data['currency'],
+                                                                       user=request.user,
+                                                                       is_buy_or_sell=int(form.data['is_buy_or_sell']),
+                                                                       figi=selected_asset.figi,
+                                                                       lot=float(form.data['lot']),
+                                                                       price_currency=float(
+                                                                           form.data['price_in_currency']),
+                                                                       currency=form.data['currency'],
                                                                        date_operation=form.data['operation_date'])
             return redirect('stocks:add_stock')
     else:
@@ -76,7 +77,7 @@ class StockViewSets(viewsets.ViewSet):
         serializer.save(user=self.request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def partial_update(self, request, pk=None):  #добавить авто подстановку времени ообновления
+    def partial_update(self, request, pk=None):  # добавить авто подстановку времени ообновления
         deposit = get_object_or_404(self.queryset, pk=pk)
         serializer = self.serializer_class(deposit, request.data)
         serializer.is_valid(raise_exception=True)

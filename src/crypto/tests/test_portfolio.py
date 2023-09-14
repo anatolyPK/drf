@@ -114,10 +114,10 @@ class AddPlusIfMoreThanZeroTest(TestCase):
 
 class UsersModelsNameTest(TestCase):
     def test_users_crypto_models(self):
-        self.assertEqual(PersonPortfolioConfig._users_models_name['crypto'], PersonsCrypto)
+        self.assertEqual(PersonPortfolioConfig._users_models['crypto'], PersonsCrypto)
 
     def test_users_stock_models(self):
-        self.assertEqual(PersonPortfolioConfig._users_models_name['stock'], UserStock)
+        self.assertEqual(PersonPortfolioConfig._users_models['stock'], UserStock)
 
 
 class ModelsForShareBondsEtfsCurrencies(TestCase):

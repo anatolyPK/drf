@@ -24,4 +24,3 @@ class AddCryptoForm(forms.Form):
     price_in_currency = forms.FloatField(label='Цена')
     lot = forms.FloatField(label="Количество")
     operation_date = forms.DateField(label="Дата операции", initial=datetime.now().date)
-    # //TODO добавить добавление облигаций, валют, етф

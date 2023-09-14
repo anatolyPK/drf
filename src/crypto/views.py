@@ -43,8 +43,7 @@ def add_transaction(request):
                                                                        lot=float(form.data['lot']),
                                                                        price_currency=
                                                                        float(form.data['price_in_currency']),
-                                                                       currency='usd' if form.data['token_2'] != 'rub'
-                                                                       else 'rub',
+                                                                       currency='usd',
                                                                        date_operation=form.data['operation_date'])
             return redirect('crypto:add_crypto')
     else:

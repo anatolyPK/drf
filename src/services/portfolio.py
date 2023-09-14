@@ -1,16 +1,37 @@
 from typing import Union
 import logging
 from crypto.binanceAPI import BinanceAPI
-from crypto.models import PersonsCrypto
-from stocks.models import UserStock, Share, Bond, Etf, Currency
+from crypto.models import PersonsCrypto, PersonsTransactions
+from stocks.models import UserStock, Share, Bond, Etf, Currency, UserTransaction
 from stocks.services.tinkoff_API import TinkoffAPI
+
 
 logger = logging.getLogger('main')
 
 
+class PersonPortfolioConfig:
+    USD_RUB_FIGI = 'BBG0013HGFT4'
+
+    _users_models = {
+        'crypto': PersonsCrypto,
+        'stock': UserStock
+    }
+
+    _users_transactions_models = {
+        'crypto': PersonsTransactions,
+        'stock': UserTransaction
+    }
+    _models_for_shares_bonds_etfs_currencies = {
+        'shares': Share,
+        'bonds': Bond,
+        'etfs': Etf,
+        'currencies': Currency
+    }
+
+
 class ArithmeticOperations:
     # параметр, который идет в метод 'round'
-    ROUND_DIGIT = 1
+    ROUND_DIGIT = 2
 
     @staticmethod
     def count_percent_profit(start_price: Union[int, float],
@@ -20,7 +41,7 @@ class ArithmeticOperations:
             return (now_price / start_price - 1) * 100
         except ZeroDivisionError as ex:
             logger.warning(ex)
-            return 100
+            return 0
         except TypeError as ex:
             logger.warning(ex)
             return 0
@@ -46,22 +67,6 @@ class ArithmeticOperations:
             return str(profit_in_currency_rub) if profit_in_currency_rub <= 0 else '+' + str(profit_in_currency_rub)
         except TypeError as ex:
             logger.warning(ex)
-
-
-class PersonPortfolioConfig:
-    USD_RUB_FIGI = 'BBG0013HGFT4'
-
-    _users_models_name = {
-        'crypto': PersonsCrypto,
-        'stock': UserStock
-    }
-
-    _models_for_shares_bonds_etfs_currencies = {
-        'shares': Share,
-        'bonds': Bond,
-        'etfs': Etf,
-        'currencies': Currency
-    }
 
 
 class PortfolioBalance(PersonPortfolioConfig):
@@ -109,13 +114,6 @@ class PortfolioBalance(PersonPortfolioConfig):
             return True
         return False
 
-    @staticmethod
-    def _get_crypto_currency(token: str):
-        """Возвращает 'rub' если токен - стейблкоин, иначе - 'usd"""
-        if token.lower() in ('usd', 'usdt', 'usdc', 'busd'):
-            return 'rub'
-        return 'usd'
-
     def _set_usdt_rub_currency(self, current_price: float):
         self._current_usd_rub_price = current_price
 
@@ -123,7 +121,7 @@ class PortfolioBalance(PersonPortfolioConfig):
 class PersonsPortfolioDB(PortfolioBalance):
     def _get_datas_from_model(self):
         try:
-            return self._users_models_name[self._type_of_assets].objects.all().filter(user=self._user)
+            return self._users_models[self._type_of_assets].objects.all().filter(user=self._user)
         except KeyError as ex:
             logger.warning(ex)
         except ValueError as ex:
@@ -189,42 +187,36 @@ class PersonsPortfolio(PersonsPortfolioDB, ArithmeticOperations):
         return params_dict
 
     def get_info_about_assets(self) -> dict:
-        """Возвращает информацию об активах."""
+        """Возвращает информацию об активах. Возвращает словарь активов, отсортированных по доли в портфеле
+        (от самого большого)"""
         tickers_info = {}
 
-        for ticker in self._tickers:
-            try:
-                tickers_info[ticker] = {}
-                tickers_info[ticker]['name'] = self._tickers[ticker].name
-                tickers_info[ticker]['lot'] = self._tickers[ticker].lot
-                tickers_info[ticker]['average_price_buy_in_rub'] = \
-                    round(self._tickers[ticker].average_price_buy_in_rub, self.ROUND_DIGIT)
-                tickers_info[ticker]['average_price_buy_in_usd'] = \
-                    round(self._tickers[ticker].average_price_buy_in_usd, self.ROUND_DIGIT)
-                tickers_info[ticker]['current_price'] = self._tickers[ticker].current_price
-                tickers_info[ticker]['currency'] = self._get_currency_symbol(self._tickers[ticker].currency)
-                tickers_info[ticker]['profit_in_currency_rub'] = self._tickers[ticker].profit_in_currency_rub
-                tickers_info[ticker]['profit_in_currency_usd'] = self._tickers[ticker].profit_in_currency_usd
-                tickers_info[ticker]['profit_in_percent_rub'] = self._tickers[ticker].profit_in_percent_rub
-                tickers_info[ticker]['profit_in_percent_usd'] = self._tickers[ticker].profit_in_percent_usd
-                tickers_info[ticker]['total_now_balance_in_rub'] = \
-                    round(self._tickers[ticker].total_now_balance_in_rub, self.ROUND_DIGIT)
-                tickers_info[ticker]['total_now_balance_in_usd'] = \
-                    round(self._tickers[ticker].total_now_balance_in_usd, self.ROUND_DIGIT)
+        try:
+            for ticker in self._tickers:
+                tickers_info[ticker] = {
+                    'name': self._tickers[ticker].name,
+                    'lot': self._tickers[ticker].lot,
+                    'average_price_buy_in_rub': round(self._tickers[ticker].average_price_buy_in_rub, self.ROUND_DIGIT),
+                    'average_price_buy_in_usd': round(self._tickers[ticker].average_price_buy_in_usd, self.ROUND_DIGIT),
+                    'current_price': self._tickers[ticker].current_price,
+                    'currency': self._get_currency_symbol(self._tickers[ticker].currency),
+                    'profit_in_currency_rub': self._tickers[ticker].profit_in_currency_rub,
+                    'profit_in_currency_usd': self._tickers[ticker].profit_in_currency_usd,
+                    'profit_in_percent_rub': self._tickers[ticker].profit_in_percent_rub,
+                    'profit_in_percent_usd': self._tickers[ticker].profit_in_percent_usd,
+                    'total_now_balance_in_rub': round(self._tickers[ticker].total_now_balance_in_rub, self.ROUND_DIGIT),
+                    'total_now_balance_in_usd': round(self._tickers[ticker].total_now_balance_in_usd, self.ROUND_DIGIT),
+                    'profit_in_currency': self._tickers[ticker].profit_in_currency_usd,
+                    'profit_in_percent': self._tickers[ticker].profit_in_percent_usd,
+                    'total_now_balance': round(self._tickers[ticker].total_now_balance_in_usd, self.ROUND_DIGIT),
+                    'percent_of_portfolio': round(self._tickers[ticker]._count_percent_of_portfolio(self._total_balance_in_usd),
+                                                  self.ROUND_DIGIT)
+                }
 
-                if self.check_currency_is_usd(self._tickers[ticker].currency):
-                    tickers_info[ticker]['profit_in_currency'] = self._tickers[ticker].profit_in_currency_usd
-                    tickers_info[ticker]['profit_in_percent'] = self._tickers[ticker].profit_in_percent_usd
-                    tickers_info[ticker]['total_now_balance'] = \
-                        round(self._tickers[ticker].total_now_balance_in_usd, self.ROUND_DIGIT)
-                else:
-                    tickers_info[ticker]['profit_in_currency'] = self._tickers[ticker].profit_in_currency_rub
-                    tickers_info[ticker]['profit_in_percent'] = self._tickers[ticker].profit_in_percent_rub
-                    tickers_info[ticker]['total_now_balance'] = \
-                        round(self._tickers[ticker].total_now_balance_in_rub, self.ROUND_DIGIT)
-            except KeyError as ex:
-                logger.warning(ex)
-        return tickers_info
+        except KeyError as ex:
+            logger.warning(ex)
+
+        return dict(sorted(tickers_info.items(), key=lambda item: item[1]['percent_of_portfolio'], reverse=True))
 
     def _get_currency_symbol(self, currency):
         if currency.lower() in ('usd', 'usdt'):
@@ -248,18 +240,18 @@ class CryptoPortfolio(PersonsPortfolio):
         except KeyError as ex:
             logger.warning(ex)
 
-        for asset in personal_assets:
-            try:
+        try:
+            for asset in personal_assets:
                 self._add_active_in_persons_portfolio(ident=asset.token,
                                                       lot=asset.lot,
                                                       average_price_buy_in_rub=asset.average_price_in_rub,
                                                       average_price_buy_in_usd=asset.average_price_in_usd,
                                                       current_price=self._get_current_price(current_prices_of_assets,
                                                                                             asset),
-                                                      currency=self._get_crypto_currency(asset.token),
+                                                      currency='usd',
                                                       name=asset.token)
-            except AttributeError as ex:
-                logger.warning(ex)
+        except AttributeError as ex:
+            logger.warning(ex)
 
     def __check_is_usd_rub(self, asset):
         if asset.token in ('usd', 'usdt', 'usdc', 'busd'):
@@ -284,11 +276,10 @@ class CryptoPortfolio(PersonsPortfolio):
     @staticmethod
     def _get_current_price(current_prices, asset):
         try:
-            if asset.token == 'rub':
+            if asset.token in ('usd', 'rub', 'usdc', 'usdt', 'busd'):
                 return 1
-            elif asset.token == 'usdt':
-                return current_prices['USDTRUB']  # если не будет юсдт, то ошибка будет
             return current_prices[asset.token.upper() + 'USDT']
+
         except KeyError as ex:
             logger.warning(ex)
         except AttributeError as ex:
@@ -342,6 +333,9 @@ class AssetsInfo(ArithmeticOperations):
             self.__count_profits_in_percents()
         except KeyError as ex:
             logger.warning(ex)
+
+    def _count_percent_of_portfolio(self, portfolio_balance: float):
+        return self.total_now_balance_in_usd / portfolio_balance * 100
 
     def __count_profits_in_percents(self):
         try:

@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from binance.client import Client
 import os
 
+
 load_dotenv()
 
 

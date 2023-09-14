@@ -1,12 +1,78 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<ul class="list-articles">
-	{% for deposit in deposits %}
-			<li><div class="article-panel">
-	<p class="first">Описание: {{deposit.description}}  Сумма: {{deposit.deposits_summ}}  Процент: {{deposit.percent}}  % </p>
-	{% endfor %}
-</div>
-</ul>
+<p>
+<div>
 
-    {%endblock%}
+</div>
+</p>
+
+
+<a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить актив</a>
+
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col"></th>
+        <th scope="col">
+            <p class="h5">Описание</p>
+        </th>
+
+        <th scope="col">
+            <p class="h5">Процент</p>
+        </th>
+
+        <th scope="col">
+            <p class="h5">Сумма</p>
+        </th>
+
+        <th scope="col">
+            <p class="h5">Прибыль</p>
+        </th>
+
+        <th scope="col"></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for deposit in deposits %}
+    <tr>
+        <th scope="row"> {{ forloop.counter}}</th>
+        <td>
+            <div class="container text-left">
+                <div class="col">
+                    {{ deposit.description }}
+                </div>
+            </div>
+        </td>
+        <td>
+            <div>
+                <div class="col">
+                    {{deposit.percent}}
+                </div>
+        </div>
+        </td>
+
+        <td>
+        <div class="col">
+            {{deposit.deposits_summ }} р.
+        </div>
+        </td>
+        <td>
+            <div>
+                <div class="col">
+                    {{deposit.percent}}
+                </div>
+
+            </div>
+        </td>
+        </td>
+
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+{%endblock%}

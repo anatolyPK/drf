@@ -16,15 +16,17 @@
         <th scope="col"></th>
         <th scope="col">
 
-            <p class="h5">Стоимость {{balance.total_balance_in_rub}} ₽</p>
-            <p class="h6">Прибыль {{balance.profit_in_currency_rub}} ₽ Суммарная прибыль {{balance.profit_in_percents_rub}}
+            <p class="h5">Баланс {{balance.total_balance_in_rub}} ₽</p>
+            <p class="h6">Прибыль {{balance.profit_in_currency_rub}} ₽ | {{balance.profit_in_percents_rub}}
                 % </p>
         </th>
         <th scope="col">
-                        <p class="h5">Стоимость {{balance.total_balance_in_usd}} $</p>
-                        <p class="h6">Прибыль {{balance.profit_in_currency_usd}} $ Суммарная прибыль {{balance.profit_in_percents_usd}} % </p>
+            <p class="h5">Баланс {{balance.total_balance_in_usd}} $</p>
+            <p class="h6">Прибыль {{balance.profit_in_currency_usd}} $ | {{balance.profit_in_percents_usd}} % </p>
         </th>
-        <th scope="col"></th>
+        <th scope="col">
+            <p class="h5">Доля в портфеле</p>
+        </th>
     </tr>
     </thead>
     <tbody>
@@ -41,7 +43,7 @@
                 <div class="row">
                     <div class="col">
                         {{ value.lot }} шт. &nbsp {{ value.current_price }} {{value.currency}}
-<!--                        //TODO сделать, чтобы средняя цена выводилась в нужной валюте-->
+                        <!--                        //TODO сделать, чтобы средняя цена выводилась в нужной валюте-->
                     </div>
                 </div>
             </div>
@@ -59,6 +61,17 @@
                         {{ value.profit_in_currency }} {{value.currency}} &nbsp {{ value.profit_in_percent }}%
                     </div>
                 </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-right">
+                <div class="row">
+                    <div class="col">
+                        {{ value.percent_of_portfolio}} %
+                    </div>
+                </div>
+
             </div>
         </td>
 
