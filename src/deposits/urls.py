@@ -19,4 +19,3 @@ deposits_drf_patterns = [
 ]
 
 from .apschedulers_tasks import *
-

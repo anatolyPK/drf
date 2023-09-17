@@ -61,9 +61,6 @@ def logout_user(request):
     return redirect('login')
 
 
-
-
-
 def persons_deposits(request):
     deposits = get_list_or_404(PersonsDeposits, user=request.user)
     return render(request, 'deposits/deposits.html', {'deposits': deposits, 'menu': menu})

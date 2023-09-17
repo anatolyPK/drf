@@ -30,7 +30,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -85,7 +84,6 @@ DATABASES = {
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -164,10 +162,10 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        "django.db.backends": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
+        # "django.db.backends": {
+        #     "handlers": ["console"],
+        #     "level": "DEBUG",
+        # },
     },
 }
 

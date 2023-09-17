@@ -19,4 +19,3 @@ class PersonsDepositsTransactionsSerializer(serializers.ModelSerializer):
         transaction = PersonDepositsTransactions.objects.create(**validated_data)
         add_or_take_sum_from_deposit(transaction)
         return transaction
-
