@@ -5,6 +5,7 @@ from services.portfolio import AssetsInfo, PersonPortfolioConfig
 from typing import Literal, Union
 import logging
 
+
 logger = logging.getLogger('main')
 
 

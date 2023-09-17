@@ -57,7 +57,7 @@ services:
       context: .
     hostname: flower
     entrypoint: celery
-    command:  -A celery flower
+    command: -A config flower
     volumes:
       - .:/code
     depends_on:
