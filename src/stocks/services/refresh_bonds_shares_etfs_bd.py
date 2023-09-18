@@ -2,6 +2,11 @@ from .tinkoff_API import TinkoffAPI, convert_tinkoff_money_in_currency
 from ..models import Share, Bond, Etf, Currency
 from datetime import datetime
 
+import logging
+
+
+logger = logging.getLogger('debug')
+
 
 class TinkoffAssetsDB:
     @classmethod
@@ -33,6 +38,9 @@ class TinkoffAssetsDB:
     def write_db_actual_bonds(cls, actual_bonds):
         new_bonds = []
         for bond in actual_bonds.instruments:
+            # logger.debug((len(bond.figi), len(bond.ticker), len(bond.name), len(bond.currency),
+            #              len(bond.exchange), len(bond.country_of_risk),
+            #              len(bond.sector)))
             if cls.__check_assets_in_bd(bond, Bond):
                 new_bond = Bond(
                     figi=bond.figi,
@@ -142,3 +150,6 @@ class TinkoffAssets(TinkoffAssetsDB):
     def update_all_currencies(cls):
         actual_currencies = TinkoffAPI.get_actual_tinkoff_currencies()
         cls.write_db_actual_currencies(actual_currencies)
+
+#
+# TinkoffAssets.update_all_assets()

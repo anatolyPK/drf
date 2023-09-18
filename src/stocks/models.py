@@ -38,21 +38,16 @@ class UserTransaction(models.Model):
         return self.figi
 
 
-class AssetsList:
-    figi = models.CharField(max_length=16)
-    name = models.CharField(max_length=128)
-
-
 class CommonAssetsInfo(models.Model):
     figi = models.CharField(max_length=16)
-    ticker = models.CharField(max_length=10)
+    ticker = models.CharField(max_length=16)
     name = models.CharField(max_length=128)
-    currency = models.CharField( max_length=10, verbose_name='Валюта актива')
+    currency = models.CharField(max_length=12, verbose_name='Валюта актива')
     buy_available_flag = models.BooleanField(verbose_name='Доступна ли для покупки')
     sell_available_flag = models.BooleanField(verbose_name='Доступна ли для продажи')
     for_iis_flag = models.BooleanField(verbose_name='Доступна ли для ИИС')
     for_qual_investor_flag = models.BooleanField(verbose_name='Доступна ли только для квал инвесторов')
-    exchange = models.CharField(max_length=50, verbose_name='Биржа')
+    exchange = models.CharField(max_length=64, verbose_name='Биржа')
 
     class Meta:
         abstract = True
@@ -61,10 +56,10 @@ class CommonAssetsInfo(models.Model):
 class Share(CommonAssetsInfo):
     lot = models.FloatField()
     nominal = models.FloatField()
-    country_of_risk = models.CharField(max_length=4, verbose_name='Страна акции')
+    country_of_risk = models.CharField(max_length=6, verbose_name='Страна акции')
     sector = models.CharField(max_length=32)
     div_yield_flag = models.BooleanField(verbose_name='Платит ли дивиденды')
-    share_type = models.CharField(max_length=10, verbose_name='Тип акции по классификации Тинькоф')
+    share_type = models.CharField(max_length=32, verbose_name='Тип акции по классификации Тинькоф')
 
 
 class Bond(CommonAssetsInfo):
@@ -76,7 +71,7 @@ class Bond(CommonAssetsInfo):
     floating_coupon_flag = models.BooleanField(verbose_name='Переменный ли купон')
     perpetual_flag = models.BooleanField(verbose_name='Признак бессрочной облигации')
     amortization_flag = models.BooleanField(verbose_name='Признак облигации с амортизацией долга')
-    risk_level = models.CharField(max_length=10, verbose_name='Уровень риска')
+    risk_level = models.CharField(max_length=32, verbose_name='Уровень риска')
 
 
 class Etf(CommonAssetsInfo):

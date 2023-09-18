@@ -41,16 +41,19 @@ services:
     hostname: worker
     entrypoint: celery
     command: -A config worker --loglevel=info
-#    command: sh -c "python -m celery -A config worker"
-#    command: -A config worker -l INFO
-#    command: [ '--workdir=./src', '-A', 'config', 'worker' ]
     volumes:
       - .:/code
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
     links:
       - redis
     depends_on:
       - web
       - redis
+      - database
 
   flower:
     build:
@@ -64,3 +67,23 @@ services:
       - redis
     ports:
       - "5555:5555"
+
+  scheduler:
+    build:
+      context: .
+    hostname: scheduler
+    entrypoint: celery
+    command: -A config beat -l INFO
+    volumes:
+      - .:/code
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+    links:
+      - redis
+    depends_on:
+      - web
+      - redis
+      - database

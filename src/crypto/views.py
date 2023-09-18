@@ -11,8 +11,14 @@ from services.portfolio import PersonsPortfolio, CryptoPortfolio
 from .forms import AddCryptoForm
 from .models import PersonsCrypto, PersonsTransactions
 from .serializers import CryptoSerializer, CryptoTransactionsSerializer, DataSerializer
+from .tasks import debug_task_crypto, add_transactions_and_update_users_portfolio
 
 from deposits.utils import menu, DataMixin
+
+import logging
+
+
+logger = logging.getLogger('main')
 
 
 class CryptoPersonBalance(ListView, DataMixin):
@@ -35,16 +41,28 @@ def add_transaction(request):
     if request.method == 'POST':
         form = AddCryptoForm(request.POST)
         if form.is_valid():
-            AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='crypto',
-                                                                       user=request.user,
-                                                                       is_buy_or_sell=int(form.data['is_buy_or_sell']),
-                                                                       token_1=form.data['token_1'].lower(),
-                                                                       token_2=form.data['token_2'].lower(),
-                                                                       lot=float(form.data['lot']),
-                                                                       price_currency=
-                                                                       float(form.data['price_in_currency']),
-                                                                       currency='usd',
-                                                                       date_operation=form.data['operation_date'])
+            logger.warning(request.user)
+            logger.warning(request.user.id)
+            add_transactions_and_update_users_portfolio.delay(assets_type='crypto',
+                                                              user_id=request.user.id,
+                                                              is_buy_or_sell=int(form.data['is_buy_or_sell']),
+                                                              token_1=form.data['token_1'].lower(),
+                                                              token_2=form.data['token_2'].lower(),
+                                                              lot=float(form.data['lot']),
+                                                              price_currency=
+                                                              float(form.data['price_in_currency']),
+                                                              currency='usd',
+                                                              date_operation=form.data['operation_date'])
+            # AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='crypto',
+            #                                                            user=request.user,
+            #                                                            is_buy_or_sell=int(form.data['is_buy_or_sell']),
+            #                                                            token_1=form.data['token_1'].lower(),
+            #                                                            token_2=form.data['token_2'].lower(),
+            #                                                            lot=float(form.data['lot']),
+            #                                                            price_currency=
+            #                                                            float(form.data['price_in_currency']),
+            #                                                            currency='usd',
+            #                                                            date_operation=form.data['operation_date'])
             return redirect('crypto:add_crypto')
     else:
         form = AddCryptoForm()

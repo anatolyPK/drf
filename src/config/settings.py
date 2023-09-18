@@ -13,6 +13,10 @@ import os
 import os.path
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 from django.conf import settings
 
@@ -41,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
+    'django_celery_beat',
 
     'crypto.apps.CryptoConfig',
     'deposits.apps.DepositsConfig',
@@ -85,7 +90,15 @@ DATABASES = {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
-    'default': {
+    # 'default': {  #локал
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'HOST': os.getenv('DB_HOST'),
+    #     'NAME': os.getenv('DB_NAME'),
+    #     'USER': os.getenv('DB_USER'),
+    #     'PASSWORD': os.getenv('DB_PASS'),
+    #     'PORT': os.getenv('DB_PORT')
+    # }
+    'default': {  #докер
         'ENGINE': 'django.db.backends.postgresql',
         'HOST': os.environ.get('DB_HOST'),
         'NAME': os.environ.get('DB_NAME'),
@@ -128,7 +141,9 @@ USE_TZ = True
 
 LOG_DIR = os.path.join(BASE_DIR, 'log')
 LOG_FILE = '/information.log'
+LOG_FILE_DEBUG = '/information_debug.log'
 LOG_PATH = LOG_DIR + LOG_FILE
+LOG_PATH_DEBUG = LOG_DIR + LOG_FILE_DEBUG
 
 if not os.path.exists(LOG_DIR):
     os.mkdir(LOG_DIR)
@@ -152,11 +167,22 @@ LOGGING = {
         "file": {
             "class": "logging.FileHandler",
             "formatter": "main_format",
-            "filename": LOG_PATH
+            "filename": LOG_PATH,
+            'level': "WARNING"
+        },
+        "file_debug": {
+            "class": "logging.FileHandler",
+            "formatter": "main_format",
+            "filename": LOG_PATH_DEBUG
         },
     },
 
     "loggers": {
+        "debug": {
+            "handlers": ["file_debug"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
         "main": {
             "handlers": ["file", "console"],
             "level": "INFO",
@@ -190,11 +216,11 @@ REST_FRAMEWORK = {
 
 
 CELERY_BROKER_URL = "redis://redis:6379/0"
-# CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 3600}
-# CELERY_RESULT_BACKEND = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
-
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Vladivostok"
 CELERY_TASK_TRACK_STARTED = True
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+

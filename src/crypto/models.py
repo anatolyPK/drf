@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 
 class PersonsCrypto(models.Model):
@@ -23,7 +24,7 @@ class PersonsTransactions(models.Model):
     price_in_rub = models.FloatField(default=0)
     price_in_usd = models.FloatField(default=0)
     lot = models.FloatField()
-    date_operation = models.DateField(default=datetime.now())
+    date_operation = models.DateField(default=timezone.now())
 
     def __str__(self):
         return self.token_1
