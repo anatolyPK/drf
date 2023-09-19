@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from stocks.services.tinkoff_API import TinkoffAPI
-from services.portfolio import AssetsInfo, PersonPortfolioConfig
+from portfolio.services.portfolio import AssetsInfo, PersonPortfolioConfig
 from typing import Literal, Union
 import logging
 
@@ -16,6 +16,14 @@ class TransactionHandler(PersonPortfolioConfig):
             cls.__add_new_transaction_method[kwargs['assets_type']](**kwargs)
         except KeyError as ex:
             logger.warning(ex)
+
+    @classmethod
+    def add_invest_sum(cls, **kwargs):
+        new_invest = PersonPortfolioConfig._users_invest_sum_models[kwargs['assets_type']](invest_sum_in_rub=kwargs['invest_sum_in_rub'],
+                                                                     invest_sum_in_usd=kwargs['invest_sum_in_usd'],
+                                                                     date_operation=cls.__refactor_date(kwargs['date_operation']),
+                                                                     user_id=kwargs['user_id'])
+        new_invest.save()
 
     @staticmethod
     def __add_stock_transaction(**kwargs):
@@ -236,7 +244,12 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                          token_2=token_2,
                                          figi=figi)
 
-        if assets_type == 'crypto' and token_1 not in ('rub', 'usdt', 'usdc', 'busd'):
+        if assets_type == 'crypto' and token_1 not in ('rub', 'usdt', 'usdc', 'busd') and token_1 != 'rub':
+            # cls.add_invest_sum(user=user,
+            #                    assets_type=assets_type,
+            #                    invest_sum=lot,
+            #                    currency=currency,
+            #                    date_operation=date_operation)
             cls.add_reverse_transaction(assets_type=assets_type,
                                         is_buy_or_sell=is_buy_or_sell,
                                         lot=lot,
@@ -300,11 +313,13 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                 date_operation: str,
                                 price: float,
                                 currency: Literal['usd', 'usdt', 'rub'],
-                                token_1: str) -> tuple[..., ...]:
+                                token_1: any) -> tuple[..., ...]:
         """Первым аргументом возвращает цену в рублях, вторым - в долларах."""
         try:
             usd_rub_currency = TinkoffAPI.get_price_on_chosen_date(
                 date=datetime.strptime(date_operation, '%d.%m.%Y'))
+            logger.critical(price)
+            logger.critical(type(price))
 
             if token_1 in ('usd', 'usdc', 'usdt', 'busd'):
                 return price, 1
@@ -320,3 +335,21 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
             logger.warning(ex)
         except ValueError as ex:
             logger.warning(ex)
+
+    @classmethod
+    def add_invest_sum(cls,
+                       user,
+                       assets_type: Literal['crypto', 'stock'],
+                       invest_sum: float or int,
+                       currency: str,
+                       date_operation: str):
+
+        invest_sum_in_rub, invest_sum_in_usd = cls.__get_rub_and_usd_price(date_operation=date_operation,
+                                                                           price=invest_sum,
+                                                                           currency=currency,
+                                                                           token_1=None)
+        super().add_invest_sum(invest_sum_in_rub=invest_sum_in_rub,
+                               invest_sum_in_usd=invest_sum_in_usd,
+                               date_operation=date_operation,
+                               user_id=user,
+                               assets_type=assets_type)

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<p>
+    <div>
+</div>
+</p>
+
+<a class="btn btn-primary" href="{% url 'crypto:crypto' %}" role="button">Баланс</a>
+<a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить актив</a>
+
+<p>
+    <div>
+</div>
+</p>
+
+<ul class="list-articles">
+ <form method="post">
+        {%csrf_token%}
+        {% for f in form %}
+        <p><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>
+        <div class="form-error">{{ f.errors }}</div>
+        {% endfor %}
+        <button type="submit"> Добавить </button>
+    </form>
+
+</ul>
+
+{%endblock%}

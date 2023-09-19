@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from datetime import  datetime
+from django.utils import timezone
+
+from portfolio.models import Portfolio
 
 
 class UserStock(models.Model):
@@ -12,6 +12,8 @@ class UserStock(models.Model):
     lot = models.FloatField(verbose_name='Количество актива')
     average_price_in_rub = models.FloatField(verbose_name='Средняя цена в рублях', default=0)
     average_price_in_usd = models.FloatField(verbose_name='Средняя цена в долларах', default=0)
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, default=None, related_name='user_asset',
+                                  null=True, blank=True)
 
     def __str__(self):
         return str(self.user) + '  ' + str(self.figi)
@@ -32,11 +34,20 @@ class UserTransaction(models.Model):
     price_in_rub = models.FloatField(verbose_name='Цена на момент покупки в рублях', default=0)
     price_in_usd = models.FloatField(verbose_name='Цена на момент покупки в долларах', default=0)
     lot = models.FloatField(verbose_name='Количество актива')
-    date_operation = models.DateField(default=datetime.now())
+    date_operation = models.DateField(default=timezone.now())
 
     def __str__(self):
         return self.figi
 
+
+class StockInvest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stock_invest')
+    invest_sum_in_rub = models.FloatField()
+    invest_sum_in_usd = models.FloatField()
+    date_operation = models.DateField(default=timezone.now())
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.invest_sum_in_rub)
 
 class CommonAssetsInfo(models.Model):
     figi = models.CharField(max_length=16)

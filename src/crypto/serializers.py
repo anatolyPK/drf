@@ -3,7 +3,7 @@ from rest_framework.renderers import JSONRenderer
 
 from .services import add_reverse_transaction
 from .models import PersonsCrypto,  PersonsTransactions
-from services.add_change_in_user_assets import AssetsChange
+from portfolio.services.add_change_in_user_assets import AssetsChange
 
 
 class CryptoSerializer(serializers.ModelSerializer):

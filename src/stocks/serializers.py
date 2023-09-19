@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import UserStock, UserTransaction
-from services.add_change_in_user_assets import AssetsChange
+from portfolio.services.add_change_in_user_assets import AssetsChange
 
 
 class UserStocksSerializer(serializers.ModelSerializer):

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from unittest import mock
 
 from crypto.models import PersonsCrypto
-from services.portfolio import CryptoPortfolio, ArithmeticOperations, PersonPortfolioConfig, PortfolioBalance
+from portfolio.services.portfolio import CryptoPortfolio, ArithmeticOperations, PersonPortfolioConfig, PortfolioBalance
 from stocks.models import UserStock, Share, Bond, Etf, Currency
 
 

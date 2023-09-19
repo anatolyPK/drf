@@ -8,8 +8,8 @@
 </p>
 
 
-<a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить актив</a>
-<a class="btn btn-primary" href="{% url 'crypto:add_invest' %}" role="button">Внести средства</a>
+<a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить портфель</a>
+
 
 
 
@@ -28,20 +28,14 @@
 
         </th>
         <th scope="col">
-             <p class="h5"> {{ balance.profit_invest_in_rub_in_currency }} ₽</p>
-            <p class="h5">{{ balance.profit_invest_in_rub_in_percent}} %</p>
-        </th>
-
-         <th scope="col">
-              <p class="h5"> {{ balance.profit_invest_in_usd_in_currency}} $</p>
-            <p class="h5">{{ balance.profit_invest_in_usd_in_percent}} %</p>
+            <p class="h5">Доля в портфеле</p>
         </th>
     </tr>
     </thead>
     <tbody>
-    {% for value in assets.values %}
+    {% for value in object_list %}
     <tr>
-        <th scope="row"> {{ forloop.counter}}</th>
+        <th scope="row"> {{ value.name}}</th>
         <td>
             <div class="container text-left">
                 <div class="row">
@@ -54,7 +48,6 @@
                         {{ value.lot }} шт. &nbsp {{ value.current_price }} {{value.currency}}
                     </div>
                 </div>
-
             </div>
         </td>
 

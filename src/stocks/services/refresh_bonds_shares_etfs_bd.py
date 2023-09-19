@@ -151,5 +151,3 @@ class TinkoffAssets(TinkoffAssetsDB):
         actual_currencies = TinkoffAPI.get_actual_tinkoff_currencies()
         cls.write_db_actual_currencies(actual_currencies)
 
-#
-# TinkoffAssets.update_all_assets()

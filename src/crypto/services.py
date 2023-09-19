@@ -1,7 +1,6 @@
 
 from .models import PersonsTransactions
-from services.portfolio import PersonsPortfolio
-from services.add_change_in_user_assets import AssetsChange
+from portfolio.services.add_change_in_user_assets import AssetsChange
 
 
 def add_reverse_transaction(**kwargs):

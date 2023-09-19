@@ -6,12 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from deposits.utils import DataMixin, menu
-from services.add_change_in_user_assets import AssetsChange
-from services.portfolio import StockPortfolio
+from portfolio.services.add_change_in_user_assets import AssetsChange
+from portfolio.services.portfolio import StockPortfolio
 from .forms import AddStockForm
 from .models import UserStock, UserTransaction
 from .serializers import UserStocksSerializer, UserTransactionSerializer
-from .services.tinkoff_API import TinkoffAPI
 
 
 class PersonStock(ListView, DataMixin):

@@ -1,7 +1,7 @@
 
 
 menu = [
-    {'title': "Профиль", 'url_name': 'home'},
+    {'title': "Портфели", 'url_name': 'portfolio:portfolio'},
     {'title': "Крипто рынок", 'url_name': 'crypto:crypto'},
     {'title': "Фондовый рынок", 'url_name': 'stocks:stocks'},
     {'title': "Вклады", 'url_name': 'deposits:deposits'},

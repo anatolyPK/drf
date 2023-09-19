@@ -5,7 +5,7 @@ from celery import shared_task
 from django.contrib.auth.models import User
 
 from config.celery import app
-from services.add_change_in_user_assets import AssetsChange
+from portfolio.services.add_change_in_user_assets import AssetsChange
 
 
 logger = logging.getLogger('main')

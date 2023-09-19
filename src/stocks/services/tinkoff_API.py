@@ -34,6 +34,16 @@ class TinkoffAPI:
 
     @classmethod
     @tinkoff_client
+    def get_coupons(cls, client, *, figi: str = None) -> dict[str: float]:
+        """"""
+        figi='BBG00NHJGKN2'
+        assets = client.instruments.get_bond_coupons(figi=figi)
+        for event in assets.events:
+            print(event)
+        # return assets.events
+
+    @classmethod
+    @tinkoff_client
     def get_last_price_asset(cls, client, *, figi: list[str] = None) -> dict[str: float]:
         """Возвращает котировки переданных активов, а также usd/rub.
         Без аргументов возвращает usd/rub"""
@@ -77,3 +87,6 @@ class TinkoffAPI:
     @tinkoff_client
     def get_actual_tinkoff_currencies(cls, client):
         return client.instruments.currencies()
+
+
+# print(TinkoffAPI.get_coupons(figi='BBG012F0B291'))
