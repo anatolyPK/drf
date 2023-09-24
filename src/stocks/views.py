@@ -21,7 +21,8 @@ class PersonStock(ListView, DataMixin):
         context = super().get_context_data(**kwargs)
         context_from_mixin = self.get_user_context(**kwargs)
 
-        stocks_portfolio = StockPortfolio(user=self.request.user)
+        stocks_portfolio = StockPortfolio(user=self.request.user,
+                                          user_assets=context['object_list'])
 
         context['balance'] = stocks_portfolio.get_info_about_portfolio()
         context['assets'] = stocks_portfolio.get_info_about_assets()

@@ -61,6 +61,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'config.middleware.ExceptionMiddleware',
+    'config.middleware.RequestTimeMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -143,8 +146,12 @@ USE_TZ = True
 LOG_DIR = os.path.join(BASE_DIR, 'log')
 LOG_FILE = '/information.log'
 LOG_FILE_DEBUG = '/information_debug.log'
+LOG_FILE_MIDDLEWARE_EXCEPTION = '/information_middleware.log'
+LOG_FILE_MIDDLEWARE_TIME = '/information_middleware_time.log'
 LOG_PATH = LOG_DIR + LOG_FILE
 LOG_PATH_DEBUG = LOG_DIR + LOG_FILE_DEBUG
+LOG_PATH_MIDDLEWARE_EXCEPTION = LOG_DIR + LOG_FILE_MIDDLEWARE_EXCEPTION
+LOG_PATH_MIDDLEWARE_TIME = LOG_DIR + LOG_FILE_MIDDLEWARE_TIME
 
 if not os.path.exists(LOG_DIR):
     os.mkdir(LOG_DIR)
@@ -176,6 +183,16 @@ LOGGING = {
             "formatter": "main_format",
             "filename": LOG_PATH_DEBUG
         },
+        "middleware_exceptions": {
+            "class": "logging.FileHandler",
+            "formatter": "main_format",
+            "filename": LOG_PATH_MIDDLEWARE_EXCEPTION
+        },
+        "middleware_time": {
+            "class": "logging.FileHandler",
+            "formatter": "main_format",
+            "filename": LOG_PATH_MIDDLEWARE_TIME
+        },
     },
 
     "loggers": {
@@ -189,6 +206,16 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "middleware_exception": {
+            "handlers": ["middleware_exceptions", "console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "middleware_time": {
+            "handlers": ["middleware_time"],
+            "level": "INFO",
+            "propagate": False,
+        },
         # "django.db.backends": {
         #     "handlers": ["console"],
         #     "level": "DEBUG",
@@ -199,9 +226,12 @@ LOGGING = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+STATIC_URL = '/static/'
+STATICFILES_DIRS = ( 'static', )
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

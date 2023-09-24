@@ -22,7 +22,9 @@ class AddCryptoForm(forms.Form):
     is_buy_or_sell = forms.ChoiceField(label="Операция", choices=CHOICES_OPERATION_TYPE)
     price_in_currency = forms.FloatField(label='Цена')
     lot = forms.FloatField(label="Количество")
-    operation_date = forms.DateField(label="Дата операции", initial=datetime.now().date)
+    operation_date = forms.DateField(label="Дата операции",
+                                     initial=datetime.now().date,
+                                     )
 
 
 class AddCryptoInvestForm(forms.Form):
@@ -31,6 +33,14 @@ class AddCryptoInvestForm(forms.Form):
         ('usd', 'Usd'),
     ]
 
-    invest_sum = forms.FloatField(label='Сумма вложений')
-    currency = forms.ChoiceField(label='Валюта', choices=CHOICES_CURRENCY)
-    operation_date = forms.DateField(label="Дата операции", initial=datetime.now().date)
+    invest_sum_in_rub = forms.FloatField(label='Сумма вложений в рублях')
+    invest_sum_in_usd = forms.FloatField(label='Сумма вложений в долларах')
+    operation_date = forms.DateField(label="Дата операции",
+                                     initial=datetime.now().date,
+                                     )
+
+    def clean_operation_date(self):
+        data = self.cleaned_data['operation_date']
+
+
+

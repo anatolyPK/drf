@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<p>
+<div></div>
+</p>
+
+
+<a class="btn btn-primary" href="{% url 'crypto:crypto' %}" role="button">Баланс</a>
+<a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить актив</a>
+        <a class="btn btn-primary" href="{% url 'crypto:add_invest' %}" role="button">Внести средства</a>
+
+<p>
+<div></div>
+</p>
+
+
+<ul class="list-articles">
+    <form method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Сохранить">
+    </form>
+</ul>
+
+
+{%endblock%}

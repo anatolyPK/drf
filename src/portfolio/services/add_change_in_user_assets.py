@@ -5,28 +5,33 @@ from portfolio.services.portfolio import AssetsInfo, PersonPortfolioConfig
 from typing import Literal, Union
 import logging
 
-
 logger = logging.getLogger('main')
+logger_debug = logging.getLogger('debug')
 
 
 class TransactionHandler(PersonPortfolioConfig):
     @classmethod
     def add_transaction_in_bd(cls, **kwargs):
         try:
-            cls.__add_new_transaction_method[kwargs['assets_type']](**kwargs)
+            cls._add_new_transaction(**kwargs)
         except KeyError as ex:
             logger.warning(ex)
 
     @classmethod
     def add_invest_sum(cls, **kwargs):
-        new_invest = PersonPortfolioConfig._users_invest_sum_models[kwargs['assets_type']](invest_sum_in_rub=kwargs['invest_sum_in_rub'],
-                                                                     invest_sum_in_usd=kwargs['invest_sum_in_usd'],
-                                                                     date_operation=cls.__refactor_date(kwargs['date_operation']),
-                                                                     user_id=kwargs['user_id'])
-        new_invest.save()
+        try:
+            new_invest = PersonPortfolioConfig._users_invest_sum_models[kwargs['assets_type']](
+                invest_sum_in_rub=kwargs['invest_sum_in_rub'],
+                invest_sum_in_usd=kwargs['invest_sum_in_usd'],
+                date_operation=cls.__refactor_date(kwargs['date_operation']),
+                user=kwargs['user'])
+
+            new_invest.save()
+        except KeyError as ex:
+            logger.warning(ex)
 
     @staticmethod
-    def __add_stock_transaction(**kwargs):
+    def _add_stock_transaction(**kwargs):
         try:
             transaction = TransactionHandler._users_transactions_models[kwargs['assets_type']] \
                 (is_buy_or_sell=kwargs['is_buy_or_sell'],
@@ -43,7 +48,7 @@ class TransactionHandler(PersonPortfolioConfig):
             logger.warning(ex)
 
     @staticmethod
-    def __add_crypto_transaction(**kwargs):
+    def _add_crypto_transaction(**kwargs):
         try:
             transaction = TransactionHandler._users_transactions_models[kwargs['assets_type']] \
                 (is_buy_or_sell=kwargs['is_buy_or_sell'],
@@ -58,6 +63,8 @@ class TransactionHandler(PersonPortfolioConfig):
             transaction.save()
         except KeyError as ex:
             logger.warning(ex)
+        except TypeError as ex:
+            logger.warning(ex)
 
     @staticmethod
     def __refactor_date(date):
@@ -69,10 +76,16 @@ class TransactionHandler(PersonPortfolioConfig):
         except ValueError as ex:
             logger.warning(ex)
 
-    __add_new_transaction_method = {
-        'crypto': __add_crypto_transaction,
-        'stock': __add_stock_transaction,
-    }
+    @classmethod
+    def _add_new_transaction(cls, assets_type: str, **kwargs):
+        transaction_methods = {
+            'crypto': cls._add_crypto_transaction,
+            'stock': cls._add_stock_transaction,
+        }
+        if assets_type in transaction_methods:
+            transaction_methods[assets_type](**kwargs)
+        else:
+            logger.warning(f"Unsupported asset type: {assets_type}")
 
 
 class PortfolioHandler(PersonPortfolioConfig):
@@ -80,6 +93,7 @@ class PortfolioHandler(PersonPortfolioConfig):
     def update_persons_portfolio(cls, **kwargs):
         """Обновляет актив пользователя в его портфеле.
         Если актив отсутствует-добавляет его"""
+
         users_asset = cls.__get_user_asset(**kwargs)
         try:
             if users_asset:
@@ -92,10 +106,12 @@ class PortfolioHandler(PersonPortfolioConfig):
     @classmethod
     def __add_change_in_portfolio(cls, users_asset, **kwargs):
         try:
-            users_asset.average_price_in_rub, users_asset.average_price_in_usd = \
-                cls.__check_buy_or_sell_and_get_new_average_price(users_asset, **kwargs)
+            if kwargs['token_1'] not in ('usdt', 'busd'):
+                users_asset.average_price_in_rub, users_asset.average_price_in_usd = \
+                    cls.__check_buy_or_sell_and_get_new_average_price(users_asset, **kwargs)
             users_asset.lot += kwargs['lot'] if kwargs['is_buy_or_sell'] else -kwargs['lot']
             users_asset.save(update_fields=['lot', 'average_price_in_rub', 'average_price_in_usd'])
+
         except KeyError as ex:
             logger.warning(ex)
         except ValueError as ex:
@@ -245,11 +261,7 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                          figi=figi)
 
         if assets_type == 'crypto' and token_1 not in ('rub', 'usdt', 'usdc', 'busd') and token_1 != 'rub':
-            # cls.add_invest_sum(user=user,
-            #                    assets_type=assets_type,
-            #                    invest_sum=lot,
-            #                    currency=currency,
-            #                    date_operation=date_operation)
+
             cls.add_reverse_transaction(assets_type=assets_type,
                                         is_buy_or_sell=is_buy_or_sell,
                                         lot=lot,
@@ -274,9 +286,11 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                  date_operation=None,
                                  figi: str = None,
                                  token_1: str = None,
-                                 token_2: str = None):
+                                 token_2: str = None,
+                                 is_transaction_update: bool = False):
         """Обновляет актив пользователя в его портфеле.
         Если актив отсутствует-добавляет его"""
+
         super().update_persons_portfolio(assets_type=assets_type,
                                          is_buy_or_sell=is_buy_or_sell,
                                          lot=lot,
@@ -287,7 +301,8 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                          date_operation=date_operation,
                                          token_1=token_1,
                                          token_2=token_2,
-                                         figi=figi)
+                                         figi=figi,
+                                         is_transaction_update=is_transaction_update)
 
     @classmethod
     def add_reverse_transaction(cls, **kwargs):
@@ -315,16 +330,14 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                 currency: Literal['usd', 'usdt', 'rub'],
                                 token_1: any) -> tuple[..., ...]:
         """Первым аргументом возвращает цену в рублях, вторым - в долларах."""
+
         try:
             usd_rub_currency = TinkoffAPI.get_price_on_chosen_date(
                 date=datetime.strptime(date_operation, '%d.%m.%Y'))
-            logger.critical(price)
-            logger.critical(type(price))
 
             if token_1 in ('usd', 'usdc', 'usdt', 'busd'):
                 return price, 1
-
-            if currency in ('rub'):
+            elif currency in ('rub'):
                 return price, price / usd_rub_currency
             else:
                 return price * usd_rub_currency, price
@@ -340,16 +353,43 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
     def add_invest_sum(cls,
                        user,
                        assets_type: Literal['crypto', 'stock'],
-                       invest_sum: float or int,
-                       currency: str,
+                       invest_sum_in_usd: float or int,
+                       invest_sum_in_rub: float or int,
                        date_operation: str):
 
-        invest_sum_in_rub, invest_sum_in_usd = cls.__get_rub_and_usd_price(date_operation=date_operation,
-                                                                           price=invest_sum,
-                                                                           currency=currency,
-                                                                           token_1=None)
         super().add_invest_sum(invest_sum_in_rub=invest_sum_in_rub,
                                invest_sum_in_usd=invest_sum_in_usd,
                                date_operation=date_operation,
-                               user_id=user,
+                               user=user,
                                assets_type=assets_type)
+
+        cls.update_persons_portfolio(assets_type=assets_type,
+                                     is_buy_or_sell=True,
+                                     lot=invest_sum_in_usd,
+                                     user=user,
+                                     price_in_rub=invest_sum_in_rub / invest_sum_in_usd,
+                                     price_in_usd=1,
+                                     currency='usd',
+                                     date_operation=date_operation,
+                                     token_1='usdt'
+                                     )
+
+    @classmethod
+    def change_crypto_transaction(cls, transaction):
+        logger_debug.debug(transaction)
+        token_transactions = cls._users_transactions_models['crypto'].objects.filter(token_1=transaction.token_1)
+
+        for transaction in token_transactions:
+            cls.update_persons_portfolio(assets_type='crypto',
+                                         is_buy_or_sell=transaction.is_buy_or_sell,
+                                         lot=transaction.lot,
+                                         user=transaction.user,
+                                         price_in_rub=transaction.price_in_rub,
+                                         price_in_usd=transaction.price_in_usd,
+                                         currency='usd',
+                                         date_operation=transaction.date_operation,
+                                         token_1=transaction.token_1,
+                                         token_2=transaction.token_2,
+                                         )
+
+# //TODO изменение на 5% за сутки

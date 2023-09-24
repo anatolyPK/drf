@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load crypto_tags %}
 {% block content %}
 
 <p>
@@ -7,35 +8,115 @@
 </div>
 </p>
 
-
+<a class="btn btn-primary" href="{% url 'crypto:crypto' %}" role="button">Баланс</a>
 <a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить актив</a>
 <a class="btn btn-primary" href="{% url 'crypto:add_invest' %}" role="button">Внести средства</a>
+<a class="btn btn-primary" href="{% url 'crypto:person_crypto_transactions' %}" role="button">Транзакции</a>
 
+
+<table class="table">
+    <thead>
+    <tr>
+
+        <th scope="col">
+            <p class="h5">Баланс {{ balance.total_balance_in_rub}} ₽</p>
+            <p class="h6"> Прибыль:
+                <span class="{% if balance.profit_in_currency_rub >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_in_currency_rub|add_plus_or_minus }} ₽
+            </span>
+                <span class="{% if balance.profit_in_percents_rub >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_in_percents_rub|add_plus_or_minus }} %
+            </span>
+            </p>
+        </th>
+
+        <th scope="col">
+            <p class="h5">Баланс {{ balance.total_balance_in_usd}} $</p>
+            <p class="h6"> Прибыль:
+                <span class="{% if balance.profit_in_currency_usd >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_in_currency_usd|add_plus_or_minus }} $
+            </span>
+                <span class="{% if balance.profit_in_percents_usd >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                    {{ balance.profit_in_percents_usd|add_plus_or_minus }} %
+                </span>
+            </p>
+        </th>
+
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <th scope="col">
+            <p class="h5"> Вложено {{ balance.invest_sum_in_rub }} ₽ </p>
+            <p class="h5">
+             <span class="{% if balance.profit_invest_in_rub_in_currency >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_invest_in_rub_in_currency|add_plus_or_minus }} ₽
+            </span>
+
+                <span class="{% if balance.profit_invest_in_rub_in_percent >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_invest_in_rub_in_percent|add_plus_or_minus }} %
+            </span>
+
+        </th>
+
+        <th scope="col">
+            <p class="h5"> Вложено {{ balance.invest_sum_in_usd }} $ </p>
+            <p class="h5">
+                <span class="{% if balance.profit_invest_in_usd_in_currency < 0 %}number-less-than-or-equal-to-0 {% else %}number-greater-than-0{% endif %}">
+                {{ balance.profit_invest_in_usd_in_currency|add_plus_or_minus }} $
+                </span>
+
+
+                <span class="{% if balance.profit_invest_in_usd_in_percent >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_invest_in_usd_in_percent|add_plus_or_minus }} %
+            </span>
+            </p>
+        </th>
+    </tr>
+    </tbody>
+</table>
 
 
 <table class="table">
     <thead>
     <tr>
         <th scope="col"></th>
-        <th scope="col">
-           <p class="h5">Баланс {{  balance.total_balance_in_rub}} ₽</p>
-            <p class="h6">Прибыль {{ balance.profit_in_currency_rub}} ₽   {{balance.profit_in_percents_rub}} %</p>
 
-        </th>
         <th scope="col">
-          <p class="h5">Баланс {{ balance.total_balance_in_usd}} $</p>
-            <p class="h6">Прибыль {{ balance.profit_in_currency_usd}} $   {{ balance.profit_in_percents_usd}} %</p>
-
-        </th>
-        <th scope="col">
-             <p class="h5"> {{ balance.profit_invest_in_rub_in_currency }} ₽</p>
-            <p class="h5">{{ balance.profit_invest_in_rub_in_percent}} %</p>
+            <p class="h6">Название</p>
         </th>
 
-         <th scope="col">
-              <p class="h5"> {{ balance.profit_invest_in_usd_in_currency}} $</p>
-            <p class="h5">{{ balance.profit_invest_in_usd_in_percent}} %</p>
+        <th scope="col">
+            <p class="h6">Количество</p>
         </th>
+
+        <th scope="col">
+            <p class="h6">Средняя цена, $</p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Прибыль, $ </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Прибыль, % </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Цена, $ </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Стоимость, $ </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Доля, % </p>
+        </th>
+
+        <th scope="col">
+        </th>
+    </tr>
     </tr>
     </thead>
     <tbody>
@@ -49,40 +130,94 @@
                         {{ value.name.upper }}
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col">
-                        {{ value.lot }} шт. &nbsp {{ value.current_price }} {{value.currency}}
-                    </div>
-                </div>
-
             </div>
         </td>
 
         <td>
-            <div class="container text-right">
+            <div class="container text-left">
                 <div class="row">
                     <div class="col">
-                        Баланс {{ value.total_now_balance }} {{value.currency}}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        {{ value.profit_in_currency }} {{value.currency}} &nbsp {{ value.profit_in_percent }}%
+                        {{ value.lot}}
                     </div>
                 </div>
             </div>
         </td>
 
         <td>
-            <div class="container text-right">
+            <div class="container text-left">
                 <div class="row">
                     <div class="col">
-                        {{ value.percent_of_portfolio}} %
+                        {{ value.average_price_buy_in_usd}}
                     </div>
                 </div>
-
             </div>
         </td>
+
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                         <span class="{% if value.profit_in_currency >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                    {{ value.profit_in_currency|add_plus_or_minus }} %
+                </span>
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        <span class="{% if value.profit_in_percent >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                    {{ value.profit_in_percent|add_plus_or_minus }} %
+                </span>
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ value.current_price}}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ value.total_now_balance_in_usd}}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ value.percent_of_portfolio }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        <a class="btn btn-primary" href="{% url 'crypto:person_crypto_edit' value.pk %}" role="button">Редактировать</a>
+                    </div>
+                </div>
+            </div>
+        </td>
+
     </tr>
     {% endfor %}
     </tbody>

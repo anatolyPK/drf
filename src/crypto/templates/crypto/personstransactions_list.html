@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<p>
+<div>
+
+</div>
+</p>
+
+<a class="btn btn-primary" href="{% url 'crypto:crypto' %}" role="button">Баланс</a>
+<a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить актив</a>
+<a class="btn btn-primary" href="{% url 'crypto:add_invest' %}" role="button">Внести средства</a>
+
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col"></th>
+
+        <th scope="col">
+            <p class="h6">Токен 1</p>
+        </th>
+
+        <th scope="col">
+            <p class="h6">Токен 2</p>
+        </th>
+
+        <th scope="col">
+            <p class="h6">Операция</p>
+        </th>
+
+        <th scope="col">
+            <p class="h6">Цена в $</p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Цена в Р </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Количество </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Дата операции </p>
+        </th>
+        <th scope="col">
+        </th>
+    </tr>
+    </tr>
+    </thead>
+    <tbody>
+    {% for transaction in object_list %}
+    <tr>
+        <th scope="row"> {{ forloop.counter}}</th>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.token_1.upper }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.token_2.upper }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {% if transaction.is_buy_or_sell %}
+                        <div> Покупка</div>
+                        {% else %}
+                        <div>Продажа</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.price_in_usd}}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.price_in_rub }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.lot }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.date_operation }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        <a class="btn btn-primary"
+                           href="{% url 'crypto:person_crypto_transaction_edit' transaction.pk %}"
+                           role="button">Редактировать</a>
+                    </div>
+                </div>
+            </div>
+        </td>
+
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+
+<div class="pagination justify-content-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link"> Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+
+
+{%endblock%}
