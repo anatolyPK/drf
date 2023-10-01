@@ -12,10 +12,19 @@ class BinanceAPI:
         client = BinanceAPI.__create_client()
         return BinanceAPI.__get_price_of_ticker(client, tickers)
 
+    # @staticmethod
+    # def get_historical_price():
+    #     client = BinanceAPI.__create_client()
+    #     return
+
     @staticmethod
     def __create_client():
         client = Client(api_key=os.getenv('API_KEY'), api_secret=os.getenv('SECRET_KEY'))
         return client
+
+    @staticmethod
+    def __get_historical_klines(client):
+        klines = client.get_historical_klines("ETHBTC", Client.KLINE_INTERVAL_30MINUTE, "1 Dec, 2017", "1 Jan, 2018")
 
     @staticmethod
     def __get_price_of_ticker(client, tickers: list):

@@ -31,7 +31,6 @@ class CryptoPersonBalance(ListView, DataMixin):
         context = super().get_context_data(**kwargs)
         context_from_mixin = self.get_user_context(**kwargs)
         crypto_portfolio = CryptoPortfolio(user=self.request.user, assets=context['object_list'])
-        # //TODO зачем два обращения в БД (гет контекст и крипто портфолио) (убрать в портфолио)
         context['balance'] = crypto_portfolio.get_info_about_portfolio()
         context['assets'] = crypto_portfolio.get_info_about_assets()
         return context | context_from_mixin
@@ -52,6 +51,11 @@ class PersonCryptoEdit(UpdateView, DataMixin):
 class PersonCryptoTransaction(ListView, DataMixin):
     model = PersonsTransactions
     paginate_by = 30
+
+    def get_ordering(self):
+        #в балансе можно сделать также, тольок здесь прописать логику сортировки
+        ordering = self.request.GET.get('ordering', '-date_operation')
+        return ordering
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)

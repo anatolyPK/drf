@@ -119,6 +119,7 @@
     </tr>
     </tr>
     </thead>
+
     <tbody>
     {% for value in assets.values %}
     <tr>
@@ -159,7 +160,7 @@
                 <div class="row">
                     <div class="col">
                          <span class="{% if value.profit_in_currency >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                    {{ value.profit_in_currency|add_plus_or_minus }} %
+                    {{ value.profit_in_currency|add_plus_or_minus }}
                 </span>
                     </div>
                 </div>
@@ -171,7 +172,7 @@
                 <div class="row">
                     <div class="col">
                         <span class="{% if value.profit_in_percent >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                    {{ value.profit_in_percent|add_plus_or_minus }} %
+                    {{ value.profit_in_percent|add_plus_or_minus }}
                 </span>
                     </div>
                 </div>

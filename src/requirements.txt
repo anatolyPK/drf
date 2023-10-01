@@ -3,7 +3,6 @@ djoser==2.2.0
 djangorestframework==3.14.0
 psycopg2==2.9.7
 celery[redis]==5.3.4
-apscheduler==3.10.4
 python-binance==1.0.19
 tinkoff-investments==0.2.0b60
 python-dotenv==1.0.0

@@ -17,5 +17,3 @@ deposits_drf_patterns = [
     path('deposits/transaction/', DepositsTransactions.as_view()),
     path('', include(router.urls)),
 ]
-
-from .apschedulers_tasks import *
