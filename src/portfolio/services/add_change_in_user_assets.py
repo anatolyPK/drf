@@ -76,16 +76,15 @@ class TransactionHandler(PortfolioConfig):
         :param kwargs: Словарь с параметрами транзакции.
         """
         try:
-            transaction = TransactionHandler._users_transactions_models[kwargs['assets_type']] \
-                (is_buy_or_sell=kwargs['is_buy_or_sell'],
-                 token_1=kwargs['token_1'],
-                 token_2=kwargs['token_2'],
-                 lot=kwargs['lot'],
-                 user=kwargs['user'],
-                 price_in_rub=kwargs['price_in_rub'],
-                 price_in_usd=kwargs['price_in_usd'],
-                 date_operation=TransactionHandler.
-                 _refactor_date(kwargs['date_operation']))
+            transaction = (TransactionHandler._users_transactions_models[kwargs['assets_type']]
+                           (is_buy_or_sell=kwargs['is_buy_or_sell'],
+                            token_1=kwargs['token_1'],
+                            token_2=kwargs['token_2'],
+                            lot=kwargs['lot'],
+                            user=kwargs['user'],
+                            price_in_rub=kwargs['price_in_rub'],
+                            price_in_usd=kwargs['price_in_usd'],
+                            date_operation=TransactionHandler._refactor_date(kwargs['date_operation'])))
             transaction.save()
         except (KeyError, TypeError) as ex:
             logger.warning((kwargs, ex))
@@ -98,16 +97,16 @@ class TransactionHandler(PortfolioConfig):
         :param kwargs: Словарь с параметрами транзакции.
         """
         try:
-            transaction = TransactionHandler._users_transactions_models[kwargs['assets_type']] \
-                (is_buy_or_sell=kwargs['is_buy_or_sell'],
-                 figi=kwargs['figi'],
-                 lot=kwargs['lot'],
-                 user=kwargs['user'],
-                 price_in_rub=kwargs['price_in_rub'],
-                 price_in_usd=kwargs['price_in_usd'],
-                 currency=kwargs['currency'],
-                 date_operation=TransactionHandler.
-                 _refactor_date(kwargs['date_operation']))
+            transaction = (TransactionHandler._users_transactions_models[kwargs['assets_type']]
+                           (is_buy_or_sell=kwargs['is_buy_or_sell'],
+                            figi=kwargs['figi'],
+                            lot=kwargs['lot'],
+                            user=kwargs['user'],
+                            price_in_rub=kwargs['price_in_rub'],
+                            price_in_usd=kwargs['price_in_usd'],
+                            currency=kwargs['currency'],
+                            date_operation=TransactionHandler.
+                            _refactor_date(kwargs['date_operation'])))
             transaction.save()
         except KeyError as ex:
             logger.warning(ex)
@@ -435,11 +434,11 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
         :param date_operation: Дата операции (строка в формате 'dd.mm.yyyy').
         """
 
-        cls.add_invest_sum(invest_sum_in_rub=invest_sum_in_rub,
-                           invest_sum_in_usd=invest_sum_in_usd,
-                           date_operation=date_operation,
-                           user=user,
-                           assets_type=assets_type)
+        super().add_invest_sum(invest_sum_in_rub=invest_sum_in_rub,
+                               invest_sum_in_usd=invest_sum_in_usd,
+                               date_operation=date_operation,
+                               user=user,
+                               assets_type=assets_type)
 
         cls.update_persons_portfolio(assets_type=assets_type,
                                      is_buy_or_sell=True,

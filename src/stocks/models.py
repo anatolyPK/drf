@@ -2,8 +2,6 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
-from portfolio.models import Portfolio
-
 
 class UserStock(models.Model):
     """Модель, хранящая данные об активах пользователей"""
@@ -12,8 +10,6 @@ class UserStock(models.Model):
     lot = models.FloatField(verbose_name='Количество актива')
     average_price_in_rub = models.FloatField(verbose_name='Средняя цена в рублях', default=0)
     average_price_in_usd = models.FloatField(verbose_name='Средняя цена в долларах', default=0)
-    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, default=None, related_name='user_asset',
-                                  null=True, blank=True)
 
     def __str__(self):
         return str(self.user) + '  ' + str(self.figi)
@@ -48,6 +44,7 @@ class StockInvest(models.Model):
 
     def __str__(self):
         return str(self.user) + '  ' + str(self.invest_sum_in_rub)
+
 
 class CommonAssetsInfo(models.Model):
     figi = models.CharField(max_length=16)

@@ -1,6 +1,5 @@
 from __future__ import absolute_import, unicode_literals
 import os
-import time
 
 from celery import Celery
 from celery.schedules import crontab
@@ -13,5 +12,22 @@ app = Celery('config')
 app.config_from_object('django.conf:settings', namespace="CELERY")
 app.conf.broker_url = settings.CELERY_BROKER_URL
 app.autodiscover_tasks()
+
+app.conf.beat_schedule ={
+    'fix_portfolio_balance': {
+        'task': 'portfolio.tasks.fix_portfolio_balance',
+        'schedule': crontab(minute='*/5')
+    },
+
+    'refresh_assets_from_tink_api': {
+        'task': 'stocks.tasks.refresh_db_from_tinkoff_api',
+        'schedule': crontab(hour='0', minute='54')
+    },
+
+    'delete_old_portfolio_balance': {
+        'task': 'portfolio.tasks.delete_old_crypto_balance',
+        'schedule': crontab(minute='*/5')
+    }
+}
 
 

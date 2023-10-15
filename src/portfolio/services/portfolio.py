@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Union
 
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -11,6 +11,7 @@ from .arithmetics import ArithmeticOperations
 from stocks.services.tinkoff_API import TinkoffAPI
 
 import logging
+
 
 logger = logging.getLogger('main')
 logger_debug = logging.getLogger('debug')
@@ -135,13 +136,14 @@ class PersonsPortfolioDB(PortfolioBalance):
                            aggregate(invest_sum_in_rub=Sum('invest_sum_in_rub'),
                                      invest_sum_in_usd=Sum('invest_sum_in_usd')))
 
-        invest_sum_rub = invest_sum_dict.get('invest_sum_in_rub', 0)
-        invest_sum_usd = invest_sum_dict.get('invest_sum_in_usd', 0)
+        invest_sum_rub = invest_sum_dict.get('invest_sum_in_rub', 0) or 0
+        invest_sum_usd = invest_sum_dict.get('invest_sum_in_usd', 0) or 0
+        logger_debug.debug(f'{invest_sum_dict} {invest_sum_rub} {invest_sum_usd}')
 
         return invest_sum_rub, invest_sum_usd
 
 
-class PersonsPortfolio(PersonsPortfolioDB, ArithmeticOperations):
+class Portfolio(PersonsPortfolioDB, ArithmeticOperations):
     """Класс для работы с портфелем пользователя."""
 
     def __init__(self, *, type_of_assets: str, user):
@@ -149,6 +151,7 @@ class PersonsPortfolio(PersonsPortfolioDB, ArithmeticOperations):
                          user=user)
         self._tickers = {}
         self.invest_sum_in_rub, self.invest_sum_in_usd = self.get_invest_sum()
+        logger_debug.debug(self.get_invest_sum())
 
     def _add_active_in_persons_portfolio(self, **kwargs):
         """Добавление актива в портфель"""
@@ -234,7 +237,7 @@ class PersonsPortfolio(PersonsPortfolioDB, ArithmeticOperations):
             return '₽'
 
 
-class CryptoPortfolio(PersonsPortfolio):
+class CryptoPortfolio(Portfolio):
     """
     Класс для работы с портфелем криптовалютных активов пользователя.
     """
@@ -297,10 +300,10 @@ class CryptoPortfolio(PersonsPortfolio):
             logger.warning(ex)
 
 
-class StockPortfolio(PersonsPortfolio):
-    def __init__(self, user: User, user_assets: List[UserStock]):
+class StockPortfolio(Portfolio):
+    def __init__(self, user: User, assets: List[UserStock]):
         super().__init__(type_of_assets='stock', user=user)
-        self._make_portfolio(user_assets)
+        self._make_portfolio(assets)
 
     def _make_portfolio(self, user_assets):
         try:
@@ -313,8 +316,8 @@ class StockPortfolio(PersonsPortfolio):
                 self._add_active_in_persons_portfolio(
                     ident=asset.figi,
                     lot=asset.lot,
-                    average_price_buy_in_rub=asset.average_price_buy_in_rub,
-                    average_price_buy_in_usd=asset.average_price_buy_in_usd,
+                    average_price_buy_in_rub=asset.average_price_in_rub,
+                    average_price_buy_in_usd=asset.average_price_in_usd,
                     current_price=current_prices_of_assets.get(asset.figi, None),
                     currency=currencies.get(asset.figi, None),
                     name=names.get(asset.figi, None),
@@ -323,5 +326,29 @@ class StockPortfolio(PersonsPortfolio):
 
         except (AttributeError, KeyError) as ex:
             logger.warning(ex)
+
+
+class PortfolioMaker:
+    def __init__(self, assets_type: str, user: User, assets: Union[List[UserStock], List[PersonsCrypto]] = None):
+        portfolio_class = self._get_assets_class(assets_type)
+
+        if not assets:
+            assets = self._get_user_assets(user=user, assets_type=assets_type)
+
+        self.portfolio = portfolio_class(user=user, assets=assets)
+
+    @staticmethod
+    def _get_assets_class(assets_type):
+        assets_classes = {
+            'crypto': CryptoPortfolio,
+            'stock': StockPortfolio
+        }
+        if assets_type not in assets_classes:
+            raise ValueError(f"Unsupported assets_type: {assets_type}")
+        return assets_classes[assets_type]
+
+    @staticmethod
+    def _get_user_assets(assets_type, user):
+        return PortfolioConfig.users_models[assets_type].objects.filter(user=user)
 
 # //TODO сделать чтообы актив не отображался если маленький баланс

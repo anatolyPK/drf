@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from deposits.utils import DataMixin, menu
 from portfolio.services.add_change_in_user_assets import AssetsChange
-from portfolio.services.portfolio import StockPortfolio
+from portfolio.services.portfolio import StockPortfolio, PortfolioMaker
 from .forms import AddStockForm
 from .models import UserStock, UserTransaction
 from .serializers import UserStocksSerializer, UserTransactionSerializer
@@ -17,15 +17,20 @@ class PersonStock(ListView, DataMixin):
     model = UserStock
     template_name = 'stocks/stocks.html'
 
+    def get_queryset(self):
+        return UserStock.objects.filter(user=self.request.user)
+
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         context_from_mixin = self.get_user_context(**kwargs)
 
-        stocks_portfolio = StockPortfolio(user=self.request.user,
-                                          user_assets=context['object_list'])
+        portfolio_maker = PortfolioMaker(user=self.request.user,
+                                          assets_type='stock',
+                                          assets=context['object_list'])
+        portfolio = portfolio_maker.portfolio
 
-        context['balance'] = stocks_portfolio.get_info_about_portfolio()
-        context['assets'] = stocks_portfolio.get_info_about_assets()
+        context['balance'] = portfolio.get_info_about_portfolio()
+        context['assets'] = portfolio.get_info_about_assets()
 
         return context | context_from_mixin
 

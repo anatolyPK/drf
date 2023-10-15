@@ -8,7 +8,8 @@ from rest_framework.response import Response
 from django.conf import settings
 
 from portfolio.services.add_change_in_user_assets import AssetsChange
-from portfolio.services.portfolio import CryptoPortfolio
+from portfolio.services.portfolio import CryptoPortfolio, PortfolioMaker
+from portfolio.services.portfolio_balance import write_in_db_portfolio_balance
 from .forms import AddCryptoForm, AddCryptoInvestForm
 from .models import PersonsCrypto, PersonsTransactions
 from .serializers import CryptoTransactionsSerializer
@@ -27,12 +28,18 @@ class CryptoPersonBalance(ListView, DataMixin):
     model = PersonsCrypto
     template_name = 'crypto/cryptos.html'
 
+    def get_queryset(self):
+        return PersonsCrypto.objects.filter(user=self.request.user)
+
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         context_from_mixin = self.get_user_context(**kwargs)
-        crypto_portfolio = CryptoPortfolio(user=self.request.user, assets=context['object_list'])
-        context['balance'] = crypto_portfolio.get_info_about_portfolio()
-        context['assets'] = crypto_portfolio.get_info_about_assets()
+        crypto_portfolio_maker = PortfolioMaker(assets_type='crypto', user=self.request.user,
+                                          assets=context['object_list'])
+        portfolio = crypto_portfolio_maker.portfolio
+        context['balance'] = portfolio.get_info_about_portfolio()
+        context['assets'] = portfolio.get_info_about_assets()
+        # write_in_db_portfolio_balance()
         return context | context_from_mixin
 
 
