@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -80,6 +82,9 @@ class Bond(CommonAssetsInfo):
     perpetual_flag = models.BooleanField(verbose_name='Признак бессрочной облигации')
     amortization_flag = models.BooleanField(verbose_name='Признак облигации с амортизацией долга')
     risk_level = models.CharField(max_length=32, verbose_name='Уровень риска')
+    maturity_date = models.DateField(verbose_name='Дата погашения', null=True, blank=True)
+    placement_date = models.DateField(verbose_name='Дата размещения', null=True, blank=True)
+    coupon_quantity_per_year = models.IntegerField(verbose_name='Количество выплат по купонам в год', default=0)
 
 
 class Etf(CommonAssetsInfo):
@@ -95,3 +100,13 @@ class Currency(CommonAssetsInfo):
     country_of_risk = models.CharField(max_length=4, verbose_name='Страна валюты')
     min_price_increment = models.FloatField()
 
+
+class Coupon(models.Model):
+    figi = models.ForeignKey(Bond, on_delete=models.CASCADE,  related_name='coupons')
+    coupon_date = models.DateTimeField(verbose_name='Дата выплаты купона')
+    coupon_number = models.IntegerField(verbose_name='Номер купона')
+    pay_one_bond = models.FloatField(verbose_name='Выплата на одну облигацию')
+    coupon_start_date = models.DateTimeField(verbose_name='Начало купонного периода')
+    coupon_end_date = models.DateTimeField(verbose_name='Окончание купонного периода')
+    coupon_period = models.IntegerField(verbose_name='Купонный период в днях')
+    coupon_type = models.CharField(max_length=32, verbose_name='Тип купона')

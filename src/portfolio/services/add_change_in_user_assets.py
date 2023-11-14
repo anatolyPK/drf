@@ -1,7 +1,9 @@
+import time
 from datetime import datetime
 from typing import Literal, Union, Tuple
 
 from django.contrib.auth.models import User
+from django.db import transaction
 
 from stocks.services.tinkoff_API import TinkoffAPI
 from .arithmetics import ArithmeticOperations
@@ -452,26 +454,30 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                      )
 
     @classmethod
-    def change_crypto_transaction(cls, transaction):
+    def change_crypto_transaction(cls, changed_transaction):
         """
         Изменяет транзакции с криптовалютами и обновляет портфель пользователя.
 
-        :param transaction: Транзакция для изменения.
+        :param changed_transaction: Транзакция для изменения.
         """
-        cls.users_models['crypto'].objects.filter(token=transaction.token_1).delete()
-        token_transactions = cls._users_transactions_models['crypto'].objects.filter(token_1=transaction.token_1)
-        for transaction in token_transactions:
-            cls.update_persons_portfolio(assets_type='crypto',
-                                         is_buy_or_sell=transaction.is_buy_or_sell,
-                                         lot=transaction.lot,
-                                         user=transaction.user,
-                                         price_in_rub=transaction.price_in_rub,
-                                         price_in_usd=transaction.price_in_usd,
-                                         currency='usd',
-                                         date_operation=transaction.date_operation,
-                                         token_1=transaction.token_1,
-                                         token_2=transaction.token_2,
-                                         )
+        cls.users_models['crypto'].objects.filter(token=changed_transaction.token_1).delete()
 
+        token_transactions = cls._users_transactions_models['crypto'].objects.filter(
+            token_1=changed_transaction.token_1,
+            user=changed_transaction.user
+        )
+
+        for changed_transaction in token_transactions:
+            cls.update_persons_portfolio(assets_type='crypto',
+                                         is_buy_or_sell=changed_transaction.is_buy_or_sell,
+                                         lot=changed_transaction.lot,
+                                         user=changed_transaction.user,
+                                         price_in_rub=changed_transaction.price_in_rub,
+                                         price_in_usd=changed_transaction.price_in_usd,
+                                         currency='usd',
+                                         date_operation=changed_transaction.date_operation,
+                                         token_1=changed_transaction.token_1,
+                                         token_2=changed_transaction.token_2,
+                                         )
 # //TODO изменение на 5% за сутки
 # //TODO разбить класс на мелкие классы

@@ -1,9 +1,9 @@
 from typing import Tuple, Dict, List, Union
+from django.core.cache import cache
 
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
-from crypto.binanceAPI import BinanceAPI
 from crypto.models import PersonsCrypto
 from stocks.models import UserStock
 from .config import PortfolioConfig
@@ -138,7 +138,6 @@ class PersonsPortfolioDB(PortfolioBalance):
 
         invest_sum_rub = invest_sum_dict.get('invest_sum_in_rub', 0) or 0
         invest_sum_usd = invest_sum_dict.get('invest_sum_in_usd', 0) or 0
-        logger_debug.debug(f'{invest_sum_dict} {invest_sum_rub} {invest_sum_usd}')
 
         return invest_sum_rub, invest_sum_usd
 
@@ -151,7 +150,6 @@ class Portfolio(PersonsPortfolioDB, ArithmeticOperations):
                          user=user)
         self._tickers = {}
         self.invest_sum_in_rub, self.invest_sum_in_usd = self.get_invest_sum()
-        logger_debug.debug(self.get_invest_sum())
 
     def _add_active_in_persons_portfolio(self, **kwargs):
         """Добавление актива в портфель"""
@@ -253,18 +251,14 @@ class CryptoPortfolio(Portfolio):
         :return:
         """
         try:
-            tokens = self._get_tokens_for_binance_api(user_assets)
-            current_prices_of_assets = BinanceAPI.get_tickers_prices(tokens)
-
-            self._current_usd_rub_price = current_prices_of_assets.get('USDTRUB', None)
+            self._current_usd_rub_price = cache.get('USDTRUB')
 
             for asset in user_assets:
                 self._add_active_in_persons_portfolio(ident=asset.token,
                                                       lot=asset.lot,
                                                       average_price_buy_in_rub=asset.average_price_in_rub,
                                                       average_price_buy_in_usd=asset.average_price_in_usd,
-                                                      current_price=self._get_current_price(current_prices_of_assets,
-                                                                                            asset),
+                                                      current_price=self._get_current_price(asset),
                                                       currency='usd',
                                                       name=asset.token,
                                                       pk=asset.pk)
@@ -272,30 +266,16 @@ class CryptoPortfolio(Portfolio):
             logger.warning(ex)
 
     @staticmethod
-    def _get_tokens_for_binance_api(personal_assets):
-        """
-         Формирует список токенов для запроса текущих цен криптовалют на бирже Binance.
-        :param personal_assets:
-        :return:
-        """
-        try:
-            return [f"usdt{asset.token}" if asset.token == 'rub' else f'{asset.token}usdt'
-                    for asset in personal_assets]
-        except (AttributeError, TypeError) as ex:
-            logger.warning(ex)
-
-    @staticmethod
-    def _get_current_price(current_prices, asset):
+    def _get_current_price(asset):
         """
         Возвращает текущую цену криптовалютного актива.
-        :param current_prices:
         :param asset:
         :return:
         """
         try:
             if asset.token in ('usd', 'rub', 'usdc', 'usdt', 'busd'):
                 return 1
-            return current_prices.get(asset.token.upper() + 'USDT', None)
+            return cache.get(f'{asset.token.upper()}USDT')
         except (KeyError, AttributeError, TypeError) as ex:
             logger.warning(ex)
 

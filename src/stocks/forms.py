@@ -10,6 +10,36 @@ class NameModelChoiceField(forms.ModelChoiceField):
         return obj.name + ' ' + obj.ticker
 
 
+class BondsCalculater(forms.Form):
+    @staticmethod
+    def get_queryset_bond():
+        return Bond.objects.all()
+
+    bond_name = NameModelChoiceField(
+        label='Название облигации',
+        queryset=get_queryset_bond().order_by('name'),
+        required=False
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+    #     cleaned_data['assets_name'] = self._get_chosen_asset(cleaned_data)
+    #
+    # def _get_chosen_asset(self, cleaned_data):
+    #     data_counter = 0
+    #     for name in ('names_share', 'names_bond', 'names_etf', 'names_currency'):
+    #         if cleaned_data[name]:
+    #             asset = cleaned_data[name]
+    #             data_counter += 1
+    #
+    #     if data_counter == 1:
+    #         return asset
+    #
+    #     raise ValidationError(
+    #         'Выберите один актив!',
+    #     )
+
+
 class AddStockForm(forms.Form):
     CHOICES_OPERATION_TYPE = [
         (1, 'Покупка'),

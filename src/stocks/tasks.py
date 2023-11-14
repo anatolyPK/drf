@@ -17,5 +17,6 @@ def refresh_db_from_tinkoff_api():
 
 
 @shared_task()
-def delete_old_crypto_balance():
-    BalanceDeleter.delete_old_balance()
+def refresh_coupons():
+    TinkoffAssets.update_all_coupons()
+

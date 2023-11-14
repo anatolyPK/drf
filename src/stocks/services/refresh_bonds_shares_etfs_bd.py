@@ -1,5 +1,7 @@
+import time
+
 from .tinkoff_API import TinkoffAPI, convert_tinkoff_money_in_currency
-from ..models import Share, Bond, Etf, Currency
+from ..models import Share, Bond, Etf, Currency, Coupon
 from datetime import datetime
 
 import logging
@@ -38,9 +40,6 @@ class TinkoffAssetsDB:
     def write_db_actual_bonds(cls, actual_bonds):
         new_bonds = []
         for bond in actual_bonds.instruments:
-            # logger.debug((len(bond.figi), len(bond.ticker), len(bond.name), len(bond.currency),
-            #              len(bond.exchange), len(bond.country_of_risk),
-            #              len(bond.sector)))
             if cls.__check_assets_in_bd(bond, Bond):
                 new_bond = Bond(
                     figi=bond.figi,
@@ -60,7 +59,10 @@ class TinkoffAssetsDB:
                     floating_coupon_flag=bond.floating_coupon_flag,
                     perpetual_flag=bond.perpetual_flag,
                     amortization_flag=bond.amortization_flag,
-                    risk_level=bond.risk_level
+                    risk_level=bond.risk_level,
+                    maturity_date=bond.maturity_date,
+                    placement_date=bond.placement_date,
+                    coupon_quantity_per_year=bond.coupon_quantity_per_year,
                 )
                 new_bonds.append(new_bond)
         Bond.objects.bulk_create(new_bonds)
@@ -111,6 +113,34 @@ class TinkoffAssetsDB:
                 new_currencies.append(new_etf)
         Currency.objects.bulk_create(new_currencies)
 
+    @classmethod
+    def write_db_actual_coupons(cls):
+        bonds = Bond.objects.all()
+        new_coupons = []
+        for bond in bonds:
+            if not bond.coupons.exists():
+                try:
+                    coupons = TinkoffAPI.get_coupons(figi=bond.figi)
+
+                    for coupon in coupons:
+                        new_coupon = Coupon(
+                            figi=bond,
+                            coupon_date=coupon.coupon_date,
+                            coupon_number=coupon.coupon_number,
+                            pay_one_bond=convert_tinkoff_money_in_currency(coupon.pay_one_bond),
+                            coupon_start_date=coupon.coupon_start_date,
+                            coupon_end_date=coupon.coupon_end_date,
+                            coupon_period=coupon.coupon_period,
+                            coupon_type=coupon.coupon_type,
+                        )
+                        new_coupons.append(new_coupon)
+                except Exception:
+                    pass
+                # time.sleep(0.01)
+            if len(new_coupons) > 80:
+                Coupon.objects.bulk_create(new_coupons)
+                new_coupons = []
+
     @staticmethod
     def __check_assets_in_bd(asset, model):
         if not model.objects.filter(figi=asset.figi):
@@ -150,4 +180,8 @@ class TinkoffAssets(TinkoffAssetsDB):
     def update_all_currencies(cls):
         actual_currencies = TinkoffAPI.get_actual_tinkoff_currencies()
         cls.write_db_actual_currencies(actual_currencies)
+
+    @classmethod
+    def update_all_coupons(cls):
+        cls.write_db_actual_coupons()
 

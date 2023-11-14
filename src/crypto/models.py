@@ -25,7 +25,7 @@ class PersonsTransactions(models.Model):
     date_operation = models.DateField(default=timezone.now(), verbose_name="Дата транзакции")
 
     def __str__(self):
-        return self.token_1
+        return f'{self.token_1} {self.user.username} {self.date_operation}'
 
 
 class CryptoInvest(models.Model):
@@ -35,7 +35,7 @@ class CryptoInvest(models.Model):
     date_operation = models.DateField(default=timezone.now())
 
     def __str__(self):
-        return str(self.user) + '  ' + str(self.invest_sum_in_rub)
+        return f'{str(self.user)} {self.invest_sum_in_rub} руб {self.invest_sum_in_usd} $ {self.date_operation}'
 
 
 class CryptoPortfolioBalance(models.Model):
@@ -52,3 +52,5 @@ class CryptoPortfolioBalance(models.Model):
 
     def __str__(self):
         return f'{str(self.user)} {str(self.sum_in_rub)} {str(self.sum_in_usd)} {self.date}'
+
+

@@ -53,7 +53,7 @@ class LoginUser(DataMixin, LoginView):
         return context | user_context
 
     def get_success_url(self):
-        return reverse_lazy('home')
+        return reverse_lazy('crypto:crypto')
 
 
 def logout_user(request):

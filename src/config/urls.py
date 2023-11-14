@@ -43,7 +43,7 @@ urlpatterns = [
     path('portfolio/', include((portfolio_patterns, 'portfolio'))),
 
     path('api/v1/crypto/', include(crypto_patterns_api)),
-    path('api/v1/', include(stocks_patterns)),
+    path('api/v1/', include(stocks_patterns_api)),
     path('api/v1/', include(deposits_drf_patterns))
 
 ]

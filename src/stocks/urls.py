@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from .views import StockViewSets, StockTransactions, PersonStock, add_stock_transaction
+from .views import StockViewSets, StockTransactions, PersonStock, add_stock_transaction, calculate_bond
 
 router = routers.SimpleRouter()
 router.register(r'stocks', StockViewSets)
@@ -9,7 +9,8 @@ router.register(r'stocks', StockViewSets)
 
 stocks_patterns = [
     path('', PersonStock.as_view(), name='stocks'),
-    path('add/', add_stock_transaction, name='add_stock')
+    path('add/', add_stock_transaction, name='add_stock'),
+    path('bonds_calc/', calculate_bond, name='bonds_calcul')
 ]
 
 stocks_patterns_api = [

@@ -22,6 +22,7 @@ def write_in_db_portfolio_balance():
     users = User.objects.all()
 
     for assets_type, db in PortfolioConfig.users_models.items():
+        fixed_balance = []
         for user in users:
             assets = db.objects.filter(user=user)
 
@@ -35,11 +36,13 @@ def write_in_db_portfolio_balance():
             balance_in_rub = portfolio_info['total_balance_in_rub']
             balance_in_usd = portfolio_info['total_balance_in_usd']
 
-            CryptoPortfolioBalance.objects.create(user=user,
-                                                  portfolio_type=assets_type,
-                                                  sum_in_rub=balance_in_rub,
-                                                  sum_in_usd=balance_in_usd,
-                                                  date=now_datetime)
+            balance = CryptoPortfolioBalance(user=user,
+                                             portfolio_type=assets_type,
+                                             sum_in_rub=balance_in_rub,
+                                             sum_in_usd=balance_in_usd,
+                                             date=now_datetime)
+            fixed_balance.append(balance)
+        CryptoPortfolioBalance.objects.bulk_create(fixed_balance)
 
 
 class BalanceGetter:
@@ -115,8 +118,6 @@ class BalanceDeleter:
 
     @classmethod
     def _should_delete_balance(cls, date: datetime, now_datetime: datetime):
-        logger_debug.debug(f'{date} {cls._check_daily(date, now_datetime)} {cls._check_weekly(date, now_datetime)} '
-                           f'{cls._check_monthly(date, now_datetime)} {cls._check_yearly(date, now_datetime)}')
         return (
                 cls._check_daily(date, now_datetime) and
                 cls._check_weekly(date, now_datetime) and

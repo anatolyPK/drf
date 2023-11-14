@@ -10,7 +10,9 @@ import logging
 load_dotenv()
 TOKEN = os.getenv("INVEST_TOKEN")
 
+
 logger = logging.getLogger('main')
+logger_debug = logging.getLogger('debug')
 
 
 USD_RUB_FIGI = 'BBG0013HGFT4'
@@ -28,19 +30,30 @@ class TinkoffAPI:
 
         def wrapper(*args, **kwargs):
             with Client(TOKEN) as client:
+                # client.instruments.get_accrued_interests()
+                # client.instruments.bonds()
                 return func(client=client, *args, **kwargs)
 
         return wrapper
 
     @classmethod
     @tinkoff_client
-    def get_coupons(cls, client, *, figi: str = None) -> dict[str: float]:
+    def get_aci(cls, client, *, figi: str) -> dict[str: float]:
         """"""
-        figi='BBG00NHJGKN2'
-        assets = client.instruments.get_bond_coupons(figi=figi)
-        for event in assets.events:
-            print(event)
-        # return assets.events
+        start = datetime.now() - timedelta(hours=1)
+        aci = client.instruments.get_accrued_interests(figi=figi, from_=start, to=datetime.now())
+        return convert_tinkoff_money_in_currency(aci.accrued_interests[0].value)
+
+    @classmethod
+    @tinkoff_client
+    def get_coupons(cls, client, *, figi: str) -> dict[str: float]:
+        """"""
+        # figi = 'BBG011FJ4HS6'
+        start = datetime.now() - timedelta(days=18000)
+        to = datetime.now() + timedelta(days=20000)
+        assets = client.instruments.get_bond_coupons(figi=figi, from_=start, to=to)
+
+        return assets.events
 
     @classmethod
     @tinkoff_client
@@ -89,4 +102,4 @@ class TinkoffAPI:
         return client.instruments.currencies()
 
 
-# print(TinkoffAPI.get_coupons(figi='BBG012F0B291'))
+# print(TinkoffAPI.get_coupons(figi='BBG011FJ4HS6'))

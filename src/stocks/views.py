@@ -8,9 +8,15 @@ from rest_framework.response import Response
 from deposits.utils import DataMixin, menu
 from portfolio.services.add_change_in_user_assets import AssetsChange
 from portfolio.services.portfolio import StockPortfolio, PortfolioMaker
-from .forms import AddStockForm
-from .models import UserStock, UserTransaction
+from .forms import AddStockForm, BondsCalculater
+from .models import UserStock, UserTransaction, Share
 from .serializers import UserStocksSerializer, UserTransactionSerializer
+
+import logging
+
+from .services.bonds_calculator import BondCalculator
+
+logger_debug = logging.getLogger('debug')
 
 
 class PersonStock(ListView, DataMixin):
@@ -33,6 +39,18 @@ class PersonStock(ListView, DataMixin):
         context['assets'] = portfolio.get_info_about_assets()
 
         return context | context_from_mixin
+
+
+def calculate_bond(request):
+    selected_asset = None
+    if request.method == 'POST':
+        form = BondsCalculater(request.POST)
+        if form.is_valid():
+            asset = form.cleaned_data['bond_name']
+            selected_asset = BondCalculator(asset, False)
+    else:
+        form = BondsCalculater()
+    return render(request, 'stocks/bonds_calc.html', {'form': form, 'menu': menu, 'selected_asset': selected_asset})
 
 
 # class PersonTransaction(CreateView, DataMixin):

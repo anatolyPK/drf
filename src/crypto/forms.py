@@ -1,9 +1,11 @@
 from datetime import datetime
 
 from django import forms
-from django.utils import timezone
+from django.core.cache import cache
+import logging
 
-from stocks.models import UserTransaction, Share, Bond
+
+logger_debug = logging.getLogger('debug')
 
 
 class NameModelChoiceField(forms.ModelChoiceField):
@@ -25,6 +27,14 @@ class AddCryptoForm(forms.Form):
     operation_date = forms.DateField(label="Дата операции",
                                      initial=datetime.now().date,
                                      )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        token_1 = cleaned_data.get('token_1').upper()
+        token_2 = cleaned_data.get('token_2').upper()
+
+        if not (cache.get(f'{token_1}{token_2}')):
+            raise forms.ValidationError("Проверьте токены!")
 
 
 class AddCryptoInvestForm(forms.Form):

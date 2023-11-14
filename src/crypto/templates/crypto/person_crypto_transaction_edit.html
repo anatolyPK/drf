@@ -8,7 +8,8 @@
 
 <a class="btn btn-primary" href="{% url 'crypto:crypto' %}" role="button">Баланс</a>
 <a class="btn btn-primary" href="{% url 'crypto:add_crypto' %}" role="button">Добавить актив</a>
-        <a class="btn btn-primary" href="{% url 'crypto:add_invest' %}" role="button">Внести средства</a>
+<a class="btn btn-primary" href="{% url 'crypto:add_invest' %}" role="button">Внести средства</a>
+<a class="btn btn-primary" href="{% url 'crypto:person_crypto_transactions' %}" role="button">Транзакции</a>
 
 <p>
 <div></div>
@@ -19,6 +20,9 @@
     <form method="post">{% csrf_token %}
         {{ form.as_p }}
         <input type="submit" value="Сохранить">
+        <a href="{% url 'crypto:person_crypto_transaction_delete' object.pk %}" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">
+            <i class="fas fa-times"></i> Удалить
+        </a>
     </form>
 </ul>
 

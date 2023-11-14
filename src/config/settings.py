@@ -31,6 +31,8 @@ SECRET_KEY = 'django-insecure-$gl#5j1j-j-mlj$*ano8rw%779jduk80&oiim1ht)$t3sl3kbf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+IN_DOCKER = True
+
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -94,21 +96,24 @@ DATABASES = {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
-    # 'default': {  #локал
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'HOST': os.getenv('DB_HOST'),
-    #     'NAME': os.getenv('DB_NAME'),
-    #     'USER': os.getenv('DB_USER'),
-    #     'PASSWORD': os.getenv('DB_PASS'),
-    #     'PORT': os.getenv('DB_PORT')
-    # }
-    'default': {  #докер
+
+    'default':  {  #докер
         'ENGINE': 'django.db.backends.postgresql',
         'HOST': os.environ.get('DB_HOST'),
         'NAME': os.environ.get('DB_NAME'),
         'USER': os.environ.get('DB_USER'),
         'PASSWORD': os.environ.get('DB_PASS'),
+    } if IN_DOCKER else
+
+    {  #локал
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': os.getenv('DB_HOST'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASS'),
+        'PORT': os.getenv('DB_PORT')
     }
+
 }
 
 # Password validation
@@ -217,7 +222,7 @@ LOGGING = {
             "propagate": False,
         },
         # "django.db.backends": {
-        #     "handlers": ["console"],
+        #     "handlers": ["file_debug"],
         #     "level": "DEBUG",
         # },
     },
@@ -225,9 +230,6 @@ LOGGING = {
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-# STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = ( 'static', )
@@ -255,4 +257,12 @@ CELERY_TASK_TRACK_STARTED = True
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
-IN_DOCKER = False
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379",
+        "OPTIONS": {
+            "db": 1,
+        }
+    }
+}

@@ -2,6 +2,6 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/src/log/information_middleware.log" charset="windows-1251" />
-    <file url="file://$PROJECT_DIR$/src/log/information_middleware_time.log" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/src/log/information_middleware_time.log" charset="UTF-8" />
   </component>
 </project>

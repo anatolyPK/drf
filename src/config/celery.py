@@ -21,12 +21,22 @@ app.conf.beat_schedule ={
 
     'refresh_assets_from_tink_api': {
         'task': 'stocks.tasks.refresh_db_from_tinkoff_api',
-        'schedule': crontab(hour='0', minute='54')
+        'schedule': crontab(hour='22', minute='41')
     },
 
     'delete_old_portfolio_balance': {
         'task': 'portfolio.tasks.delete_old_crypto_balance',
-        'schedule': crontab(minute='*/5')
+        'schedule': crontab(minute='*/10')
+    },
+
+    'update_cache_tickers_price': {
+        'task': 'crypto.tasks.update_cache_tickers_price',
+        'schedule': 30.0, #установить 10,0
+    },
+
+    'update_coupons': {
+        'task': 'stocks.tasks.refresh_coupons',
+        'schedule': crontab(hour='17', minute='10'),
     }
 }
 

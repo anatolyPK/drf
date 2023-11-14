@@ -11,23 +11,18 @@
 <a class="btn btn-primary" href="{% url 'crypto:add_invest' %}" role="button">Внести средства</a>
 <a class="btn btn-primary" href="{% url 'crypto:person_crypto_transactions' %}" role="button">Транзакции</a>
 
-
 <p>
 <div>
 </div>
 </p>
 
-<ul class="list-articles">
-    <form method="post">
-        {%csrf_token%}
-        {% for f in form %}
-        <p><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>
-        <div class="form-error">{{ f.errors }}</div>
-        {% endfor %}
-        {{ form.non_field_errors }}
-        <button type="submit"> Добавить</button>
-    </form>
-
-</ul>
+<form method="post" class="mt-3">
+    {% csrf_token %}
+    <div class="alert alert-danger">
+        <p class="mb-0">Are you sure you want to delete "{{ object }}"?</p>
+    </div>
+    {{ form }}
+    <button type="submit" class="btn btn-danger">Confirm</button>
+</form>
 
 {%endblock%}

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, UpdateView
+from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,12 +13,11 @@ from portfolio.services.portfolio_balance import write_in_db_portfolio_balance
 from .forms import AddCryptoForm, AddCryptoInvestForm
 from .models import PersonsCrypto, PersonsTransactions
 from .serializers import CryptoTransactionsSerializer
-from .tasks import add_transactions_and_update_users_portfolio
+from .tasks import add_transactions_and_update_users_portfolio, update_crypto_transaction, add_invest_sum_task
 
 from deposits.utils import menu, DataMixin
 
 import logging
-
 
 logger = logging.getLogger('main')
 logger_debug = logging.getLogger('debug')
@@ -35,11 +34,12 @@ class CryptoPersonBalance(ListView, DataMixin):
         context = super().get_context_data(**kwargs)
         context_from_mixin = self.get_user_context(**kwargs)
         crypto_portfolio_maker = PortfolioMaker(assets_type='crypto', user=self.request.user,
-                                          assets=context['object_list'])
+                                                assets=context['object_list'])
         portfolio = crypto_portfolio_maker.portfolio
         context['balance'] = portfolio.get_info_about_portfolio()
         context['assets'] = portfolio.get_info_about_assets()
         # write_in_db_portfolio_balance()
+
         return context | context_from_mixin
 
 
@@ -57,11 +57,23 @@ class PersonCryptoEdit(UpdateView, DataMixin):
 
 class PersonCryptoTransaction(ListView, DataMixin):
     model = PersonsTransactions
-    paginate_by = 30
+    paginate_by = 20
+    ordering = ['-date_operation']
+    # ПОЧЕМУ НЕ РАБОТАТЕ ААА
+
+    def get_queryset(self):
+        queryset = PersonsTransactions.objects.filter(user=self.request.user)
+        ordering = self.get_ordering()
+
+        if ordering:
+            queryset = queryset.order_by(ordering)
+
+        return queryset
 
     def get_ordering(self):
-        #в балансе можно сделать также, тольок здесь прописать логику сортировки
+        # в балансе можно сделать также, тольок здесь прописать логику сортировки
         ordering = self.request.GET.get('ordering', '-date_operation')
+        logger_debug.debug(ordering)
         return ordering
 
     def get_context_data(self, *, object_list=None, **kwargs):
@@ -87,8 +99,23 @@ class PersonCryptoTransactionEdit(UpdateView, DataMixin):
         transaction = self.get_object()
 
         # пересчитывает параметры актива в портфеля
-        AssetsChange.change_crypto_transaction(transaction)
+        if settings.IN_DOCKER:
+            update_crypto_transaction.delay(transaction=transaction)
+        else:
+            AssetsChange.change_crypto_transaction(changed_transaction=transaction)
         return data
+
+
+class PersonCryptoTransactionDelete(DeleteView, DataMixin):
+    model = PersonsTransactions
+    success_url = reverse_lazy('crypto:person_crypto_transactions')
+    template_name = 'crypto/confirm_delete.html'
+
+    def form_valid(self, form):
+        deleted_object = self.get_object()
+        obj = super().form_valid(form)
+        AssetsChange.change_crypto_transaction(deleted_object)
+        return obj
 
 
 def add_transaction(request):
@@ -109,8 +136,8 @@ def add_transaction(request):
             else:
                 AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='crypto',
                                                                            user=request.user,
-                                                                           is_buy_or_sell=int(
-                                                                               form.data['is_buy_or_sell']),
+                                                                           is_buy_or_sell=
+                                                                           int(form.data['is_buy_or_sell']),
                                                                            token_1=form.data['token_1'].lower(),
                                                                            token_2=form.data['token_2'].lower(),
                                                                            lot=float(form.data['lot']),
@@ -128,23 +155,17 @@ def add_invest_sum(request):
     if request.method == 'POST':
         form = AddCryptoInvestForm(request.POST)
         if form.is_valid():
-            # if settings.IN_DOCKER:
-            #     add_transactions_and_update_users_portfolio.delay(assets_type='crypto',
-            #                                                       user_id=request.user.id,
-            #                                                       is_buy_or_sell=int(form.data['is_buy_or_sell']),
-            #                                                       token_1=form.data['token_1'].lower(),
-            #                                                       token_2=form.data['token_2'].lower(),
-            #                                                       lot=float(form.data['lot']),
-            #                                                       price_currency=
-            #                                                       float(form.data['price_in_currency']),
-            #                                                       currency='usd',
-            #                                                       date_operation=form.data['operation_date'])
-            # else:
-            AssetsChange.add_invest_sum(assets_type='crypto',
-                                        invest_sum_in_rub=float(form.data['invest_sum_in_rub']),
-                                        invest_sum_in_usd=float(form.data['invest_sum_in_usd']),
-                                        date_operation=form.data['operation_date'],
-                                        user=request.user)
+            if settings.IN_DOCKER:
+                add_invest_sum_task.delay(invest_sum_in_rub=float(form.data['invest_sum_in_rub']),
+                                          invest_sum_in_usd=float(form.data['invest_sum_in_usd']),
+                                          date_operation=form.data['operation_date'],
+                                          user_id=request.user.id)
+            else:
+                AssetsChange.add_invest_sum(assets_type='crypto',
+                                            invest_sum_in_rub=float(form.data['invest_sum_in_rub']),
+                                            invest_sum_in_usd=float(form.data['invest_sum_in_usd']),
+                                            date_operation=form.data['operation_date'],
+                                            user=request.user)
             return redirect('crypto:add_invest')
     else:
         form = AddCryptoInvestForm()

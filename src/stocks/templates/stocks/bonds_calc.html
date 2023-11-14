@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<p>
+    <div>
+</div>
+</p>
+
+<a class="btn btn-primary" href="{% url 'stocks:stocks' %}" role="button">Баланс</a>
+
+
+<ul class="list-articles">
+ <form method="post">
+        {%csrf_token%}
+     <div class="text-danger">
+      {{ form.non_field_errors }}
+    </div>
+
+     {% for f in form %}
+        <p><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>
+        <div class="form-error invalid-feedback text-danger">{{ f.errors }}</div>
+        {% endfor %}
+        <button type="submit"> Рассчитать </button>
+    </form>
+
+</ul>
+
+ <div class="container mt-3">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {% if selected_asset %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">Параметр</th>
+                            <th scope="col">Значение</th>
+                            <th scope="col">Описание</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Годовой платеж</td>
+                            <td>{{ selected_asset.yearly_payment }}</td>
+                            <td>Сумма, выплачиваемая владельцу облигации ежегодно</td>
+                        </tr>
+                        <tr>
+                            <td>Лет до погашения</td>
+                            <td>{{ selected_asset.years_to_maturity }}</td>
+                            <td>Оставшееся время до погашения облигации в годах</td>
+                        </tr>
+                        <tr>
+                            <td>Рыночная цена</td>
+                            <td>{{ selected_asset.market_price }}</td>
+                            <td>Текущая цена облигации на рынке</td>
+                        </tr>
+                        <tr>
+                            <td>Текущая доходность</td>
+                            <td>{{ selected_asset.current_yield }}</td>
+                            <td>Доходность облигации, учитывая текущую цену и номинал</td>
+                        </tr>
+                        <tr>
+                            <td>Скорректированная доходность</td>
+                            <td>{{ selected_asset.adjusted_current_yield }}</td>
+                            <td>Доходность, учитывающая текущую цену, номинал и оставшееся время до погашения</td>
+                        </tr>
+                        <tr>
+                            <td>YTM</td>
+                            <td>{{ selected_asset.ytm }}</td>
+                            <td>Эффективная доходность облигации</td>
+                        </tr>
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+{%endblock%}
