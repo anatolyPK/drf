@@ -31,7 +31,7 @@ class TinkoffAPI:
         def wrapper(*args, **kwargs):
             with Client(TOKEN) as client:
                 # client.instruments.get_accrued_interests()
-                # client.instruments.bonds()
+                # client.instruments.bond_by()
                 return func(client=client, *args, **kwargs)
 
         return wrapper
@@ -54,6 +54,18 @@ class TinkoffAPI:
         assets = client.instruments.get_bond_coupons(figi=figi, from_=start, to=to)
 
         return assets.events
+
+    # @classmethod
+    # @tinkoff_client
+    # def get_bond(cls, client) -> dict[str: float]:
+    #     figi = 'TCS00A105JT4'
+    #     from tinkoff.invest.grpc.instruments_pb2 import INSTRUMENT_ID_TYPE_FIGI
+    #     bond = client.instruments.bond_by(id_type=INSTRUMENT_ID_TYPE_FIGI, id=figi)
+    #     # for b in bond:
+    #     currency_nominal = bond.instrument.nominal.currency
+    #     print(currency_nominal)
+    #     logger_debug.debug(bond)
+    #     return bond
 
     @classmethod
     @tinkoff_client
@@ -102,4 +114,4 @@ class TinkoffAPI:
         return client.instruments.currencies()
 
 
-# print(TinkoffAPI.get_coupons(figi='BBG011FJ4HS6'))
+# print(TinkoffAPI.get_bond())

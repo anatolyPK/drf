@@ -46,6 +46,7 @@ class TinkoffAssetsDB:
                     ticker=bond.ticker,
                     name=bond.name,
                     currency=bond.currency,
+                    currency_nominal=bond.nominal.currency,
                     buy_available_flag=bond.buy_available_flag,
                     sell_available_flag=bond.sell_available_flag,
                     for_iis_flag=bond.for_iis_flag,

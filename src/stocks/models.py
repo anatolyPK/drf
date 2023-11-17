@@ -74,6 +74,7 @@ class Share(CommonAssetsInfo):
 
 class Bond(CommonAssetsInfo):
     nominal = models.FloatField(verbose_name='Номинал облигации')
+    currency_nominal = models.CharField(max_length=12, verbose_name='Валюта облигации', default='rub')
     initial_nominal = models.FloatField(verbose_name='Изначальный номинал облигации')
     aci_value = models.FloatField(verbose_name='Значение НКД (накопленного купонного дохода) на дату')
     country_of_risk = models.CharField(max_length=4, verbose_name='Страна облигации')

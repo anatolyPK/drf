@@ -21,7 +21,7 @@ app.conf.beat_schedule ={
 
     'refresh_assets_from_tink_api': {
         'task': 'stocks.tasks.refresh_db_from_tinkoff_api',
-        'schedule': crontab(hour='22', minute='41')
+        'schedule': crontab(hour='18', minute='48')
     },
 
     'delete_old_portfolio_balance': {
@@ -36,7 +36,7 @@ app.conf.beat_schedule ={
 
     'update_coupons': {
         'task': 'stocks.tasks.refresh_coupons',
-        'schedule': crontab(hour='17', minute='10'),
+        'schedule': crontab(hour='18', minute='48'),
     }
 }
 

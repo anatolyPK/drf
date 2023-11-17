@@ -11,6 +11,12 @@ class NameModelChoiceField(forms.ModelChoiceField):
 
 
 class BondsCalculater(forms.Form):
+    CHOICES_TAX = [
+        (0, 'Без налога'),
+        (13, '13%'),
+        (15, '15%'),
+    ]
+
     @staticmethod
     def get_queryset_bond():
         return Bond.objects.all()
@@ -21,23 +27,17 @@ class BondsCalculater(forms.Form):
         required=False
     )
 
+    tax_size = forms.ChoiceField(
+        label="Размер налога",
+        choices=CHOICES_TAX
+    )
+
     def clean(self):
         cleaned_data = super().clean()
-    #     cleaned_data['assets_name'] = self._get_chosen_asset(cleaned_data)
-    #
-    # def _get_chosen_asset(self, cleaned_data):
-    #     data_counter = 0
-    #     for name in ('names_share', 'names_bond', 'names_etf', 'names_currency'):
-    #         if cleaned_data[name]:
-    #             asset = cleaned_data[name]
-    #             data_counter += 1
-    #
-    #     if data_counter == 1:
-    #         return asset
-    #
-    #     raise ValidationError(
-    #         'Выберите один актив!',
-    #     )
+        if not cleaned_data['bond_name']:
+            raise ValidationError(
+                'Выберите облигацию!',
+            )
 
 
 class AddStockForm(forms.Form):

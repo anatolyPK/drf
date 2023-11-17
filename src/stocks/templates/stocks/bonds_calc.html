@@ -2,87 +2,131 @@
 {% block content %}
 
 <p>
-    <div>
+<div>
 </div>
 </p>
 
 <a class="btn btn-primary" href="{% url 'stocks:stocks' %}" role="button">Баланс</a>
 
+<p>
+<div>
+</div>
+</p>
 
 <ul class="list-articles">
- <form method="post">
+    <form method="post">
         {%csrf_token%}
-     <div class="text-danger">
-      {{ form.non_field_errors }}
-    </div>
+        <div class="text-danger">
+            {{ form.non_field_errors }}
+        </div>
 
-     {% for f in form %}
+        {% for f in form %}
         <p><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>
         <div class="form-error invalid-feedback text-danger">{{ f.errors }}</div>
         {% endfor %}
-        <button type="submit"> Рассчитать </button>
+        <button type="submit"> Рассчитать</button>
     </form>
 
 </ul>
 
- <div class="container mt-3">
+<div class="container mt-3">
     <div class="row">
         <div class="col-md-8 offset-md-2">
             {% if selected_asset %}
-                <table class="table table-bordered">
-                    <thead>
+            <div class="container mt-4">
+                <!-- Первая таблица -->
+                <div class="col-12">
+                    <h3>Ценовые показатели</h3>
+                    <table class="table table-bordered w-100">
+                        <tbody>
                         <tr>
-                            <th scope="col">Параметр</th>
-                            <th scope="col">Значение</th>
-                            <th scope="col">Описание</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Годовой платеж</td>
-                            <td>{{ selected_asset.yearly_payment }}</td>
-                            <td>Сумма, выплачиваемая владельцу облигации ежегодно</td>
+                            <th scope="row" class="text-start">Непогашенный номинал</th>
+                            <td class="text-end">{{selected_asset.nominal}}</td>
                         </tr>
                         <tr>
-                            <td>Лет до погашения</td>
-                            <td>{{ selected_asset.years_to_maturity }}</td>
-                            <td>Оставшееся время до погашения облигации в годах</td>
+                            <th scope="row" class="text-start">Дата погашения</th>
+                            <td class="text-end">{{selected_asset.maturity_date}}</td>
                         </tr>
                         <tr>
-                            <td>Рыночная цена</td>
-                            <td>{{ selected_asset.market_price }}</td>
-                            <td>Текущая цена облигации на рынке</td>
+                            <th scope="row" class="text-start">Валюта номинала</th>
+                            <td class="text-end">{{selected_asset.currency_nominal.upper}}</td>
                         </tr>
                         <tr>
-                            <td>Текущая доходность</td>
-                            <td>{{ selected_asset.current_yield }}</td>
-                            <td>Доходность облигации, учитывая текущую цену и номинал</td>
+                            <th scope="row" class="text-start">Цена (без НКД), %</th>
+                            <td class="text-end">{{selected_asset.market_price}}</td>
                         </tr>
                         <tr>
-                            <td>Скорректированная доходность</td>
-                            <td>{{ selected_asset.adjusted_current_yield }}</td>
-                            <td>Доходность, учитывающая текущую цену, номинал и оставшееся время до погашения</td>
+                            <th scope="row" class="text-start">Цена (c НКД), %</th>
+                            <td class="text-end">{{selected_asset.market_price_with_aci}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Доходности</h3>
+                    <table class="table table-bordered w-100">
+                        <tbody>
+                        <tr>
+                            <th scope="row" class="text-start">Эффективная доходность</th>
+                            <td class="text-end"> {{ selected_asset.ytm }}</td>
                         </tr>
                         <tr>
-                            <td>YTM</td>
-                            <td>{{ selected_asset.ytm }}</td>
-                            <td>Эффективная доходность облигации</td>
+                            <th scope="row" class="text-start">Текущая доходность</th>
+                            <td class="text-end">{{selected_asset.current_yield}}</td>
                         </tr>
-                    </tbody>
-                </table>
+                        <tr>
+                            <th scope="row" class="text-start">Скорректированная доходность</th>
+                            <td class="text-end">{{selected_asset.adjusted_current_yield}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+
+                    <h3>Дополнительные показатели</h3>
+                    <table class="table table-bordered w-100">
+                        <tbody>
+                        <tr>
+                            <th scope="row" class="text-start">Дата погашения</th>
+                            <td class="text-end">{{selected_asset.maturity_date}}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="text-start">НКД</th>
+                            <td class="text-end">{{selected_asset.aci_value}}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="text-start"> Лет до погашения</th>
+                            <td class="text-end">{{selected_asset.years_to_maturity}}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="text-start"> Количество выплат в год</th>
+                            <td class="text-end">{{selected_asset.coupon_quantity_per_year}}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="text-start">Сумма купона</th>
+                            <td class="text-end">{{selected_asset.coupon_info.next_coupon_size}}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="text-start">Годовой платеж</th>
+                            <td class="text-end">{{selected_asset.coupon_info.yearly_coupon_payment}}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="text-start"> Дата выплаты купона</th>
+                            <td class="text-end">{{selected_asset.coupon_info.next_coupon.coupon_date}}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="text-start">Дней до выплаты купона</th>
+                            <td class="text-end">{{selected_asset.coupon_info.days_to_next_coupon}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+
             {% endif %}
         </div>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
 
 
 {%endblock%}

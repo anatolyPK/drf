@@ -31,8 +31,8 @@ class PersonStock(ListView, DataMixin):
         context_from_mixin = self.get_user_context(**kwargs)
 
         portfolio_maker = PortfolioMaker(user=self.request.user,
-                                          assets_type='stock',
-                                          assets=context['object_list'])
+                                         assets_type='stock',
+                                         assets=context['object_list'])
         portfolio = portfolio_maker.portfolio
 
         context['balance'] = portfolio.get_info_about_portfolio()
@@ -47,7 +47,9 @@ def calculate_bond(request):
         form = BondsCalculater(request.POST)
         if form.is_valid():
             asset = form.cleaned_data['bond_name']
-            selected_asset = BondCalculator(asset, False)
+            tax_size = form.cleaned_data['tax_size']
+            if asset:
+                selected_asset = BondCalculator(asset, tax_size=tax_size)
     else:
         form = BondsCalculater()
     return render(request, 'stocks/bonds_calc.html', {'form': form, 'menu': menu, 'selected_asset': selected_asset})
