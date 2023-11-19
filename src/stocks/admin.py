@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserStock
+from .models import UserShare
 
-admin.site.register(UserStock)
+admin.site.register(UserShare)
 

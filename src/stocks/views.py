@@ -9,7 +9,7 @@ from deposits.utils import DataMixin, menu
 from portfolio.services.add_change_in_user_assets import AssetsChange
 from portfolio.services.portfolio import StockPortfolio, PortfolioMaker
 from .forms import AddStockForm, BondsCalculater
-from .models import UserStock, UserTransaction, Share
+from .models import Share, UserShare
 from .serializers import UserStocksSerializer, UserTransactionSerializer
 
 import logging
@@ -20,11 +20,11 @@ logger_debug = logging.getLogger('debug')
 
 
 class PersonStock(ListView, DataMixin):
-    model = UserStock
+    model = UserShare
     template_name = 'stocks/stocks.html'
 
     def get_queryset(self):
-        return UserStock.objects.filter(user=self.request.user)
+        return UserShare.objects.filter(user=self.request.user)
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -71,8 +71,8 @@ def add_stock_transaction(request):
     if request.method == 'POST':
         form = AddStockForm(request.POST)
         if form.is_valid():
-            selected_asset = form.cleaned_data['assets_name']
-            AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='stock',
+            selected_asset, asset_name = form.cleaned_data['assets_name'] #rename asset_name
+            AssetsChange.add_transaction_in_bd_and_update_users_assets(assets_type='stock', #можно не передавать все параметры
                                                                        user=request.user,
                                                                        is_buy_or_sell=int(form.data['is_buy_or_sell']),
                                                                        figi=selected_asset.figi,
@@ -80,41 +80,43 @@ def add_stock_transaction(request):
                                                                        price_currency=float(
                                                                            form.data['price_in_currency']),
                                                                        currency=form.data['currency'],
-                                                                       date_operation=form.data['operation_date'])
+                                                                       date_operation=form.data['operation_date'],
+                                                                       asset_name=asset_name,
+                                                                       asset=selected_asset)
             return redirect('stocks:add_stock')
     else:
         form = AddStockForm()
     return render(request, 'stocks/add_stock.html', {'form': form, 'menu': menu})
 
 
-class StockViewSets(viewsets.ViewSet):
-    serializer_class = UserStocksSerializer
-    permission_classes = (IsAuthenticated,)
-    queryset = UserStock.objects.all()
+# class StockViewSets(viewsets.ViewSet):
+#     serializer_class = UserStocksSerializer
+#     permission_classes = (IsAuthenticated,)
+#     queryset = UserStock.objects.all()
+#
+#     def list(self, request):
+#         balance = StockPortfolio(user=request.user)
+#         return Response(balance.get_info_about_portfolio_and_assets())
+#
+#     def create(self, request):
+#         serializer = self.serializer_class(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save(user=self.request.user)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#
+#     def partial_update(self, request, pk=None):  # добавить авто подстановку времени ообновления
+#         deposit = get_object_or_404(self.queryset, pk=pk)
+#         serializer = self.serializer_class(deposit, request.data)
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save()
+#         return Response(serializer.data)
 
-    def list(self, request):
-        balance = StockPortfolio(user=request.user)
-        return Response(balance.get_info_about_portfolio_and_assets())
 
-    def create(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=self.request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def partial_update(self, request, pk=None):  # добавить авто подстановку времени ообновления
-        deposit = get_object_or_404(self.queryset, pk=pk)
-        serializer = self.serializer_class(deposit, request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-
-class StockTransactions(generics.CreateAPIView):
-    serializer_class = UserTransactionSerializer
-    permission_classes = (IsAuthenticated,)
-    queryset = UserTransaction.objects.all()
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-        return Response(serializer.data)
+# class StockTransactions(generics.CreateAPIView):
+#     serializer_class = UserTransactionSerializer
+#     permission_classes = (IsAuthenticated,)
+#     queryset = UserTransaction.objects.all()
+#
+#     def perform_create(self, serializer):
+#         serializer.save(user=self.request.user)
+#         return Response(serializer.data)

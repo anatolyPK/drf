@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 
 from crypto.models import PersonsCrypto
-from stocks.models import UserStock
 from .config import PortfolioConfig
 from .arithmetics import ArithmeticOperations
 from stocks.services.tinkoff_API import TinkoffAPI
@@ -43,7 +42,8 @@ class AssetsInfo(PortfolioConfig):
             self.usd_rub_currency = kwargs['usd_rub_currency']
             self.currency = kwargs['currency']
             self.pk = kwargs['pk']
-
+            if kwargs.get('stock_tag', None):
+                self.stock_tag = kwargs['stock_tag']
             self.total_now_balance_in_rub, self.total_now_balance_in_usd = \
                 ArithmeticOperations.count_rub_and_usd_price(currency=self.currency,
                                                              current_price=self.current_price,
@@ -51,7 +51,6 @@ class AssetsInfo(PortfolioConfig):
                                                              usd_rub_currency=self.usd_rub_currency)
             self._count_profits_in_currencies()
             self._count_profits_in_percents()
-
         except KeyError as ex:
             logger.warning((kwargs, ex))
 
@@ -86,6 +85,7 @@ class PortfolioBalance(PortfolioConfig):
         self._add_price_in_buy_price(**kwargs)
 
     def _add_price_in_total_balance(self, **kwargs):
+        logger_debug.debug(kwargs)
         price_in_rub, price_in_usd = ArithmeticOperations.count_rub_and_usd_price(currency=kwargs['currency'],
                                                                                   current_price=kwargs['current_price'],
                                                                                   lot=kwargs['lot'],
@@ -102,12 +102,17 @@ class PortfolioBalance(PortfolioConfig):
 
 
 class PersonsPortfolioDB(PortfolioBalance):
-    def _get_users_assets_from_model(self):
+    def _get_users_assets_from_model(self, assets=None):
         """
         Возвращает активы пользователя на основе модели соответствующего типа.
+        assets: [share, bond, etf, currency]
         """
         try:
+            if assets is not None:
+                return self.users_models[self._type_of_assets][assets].objects.filter(user=self._user)
+
             return self.users_models[self._type_of_assets].objects.filter(user=self._user)
+
         except (KeyError, ValueError) as ex:
             logger.warning(ex)
             return None
@@ -224,6 +229,7 @@ class Portfolio(PersonsPortfolioDB, ArithmeticOperations):
                     ArithmeticOperations.round_number(ArithmeticOperations.count_percent(info.total_now_balance_in_usd,
                                                                                          self._total_balance_in_usd)),
                 'pk': info.pk,
+                'stock_tag': info.stock_tag if self._type_of_assets == 'stock' else None,
             }
 
         return dict(sorted(tickers_info.items(), key=lambda item: item[1]['percent_of_portfolio'], reverse=True))
@@ -281,35 +287,46 @@ class CryptoPortfolio(Portfolio):
 
 
 class StockPortfolio(Portfolio):
-    def __init__(self, user: User, assets: List[UserStock]):
+    def __init__(self, user: User, assets):
         super().__init__(type_of_assets='stock', user=user)
         self._make_portfolio(assets)
 
-    def _make_portfolio(self, user_assets):
+    def _make_portfolio(self, user_stock):
         try:
-            figis = [asset.figi for asset in user_assets]
+            figi_1 = [asset.figi.figi for asset in user_stock]
+
+            user_bond, user_currency, user_etf = self._get_other_users_assets()
+            figi_2 = [asset.figi.figi for asset in user_bond]
+            figi_3 = [asset.figi.figi for asset in user_currency]
+            figi_4 = [asset.figi.figi for asset in user_etf]
+            figis = figi_1 + figi_2 + figi_3 + figi_4
             currencies, names = self._get_currencies_and_names_from_bd(figis)
             current_prices_of_assets = TinkoffAPI.get_last_price_asset(figi=figis)
             self._current_usd_rub_price = current_prices_of_assets.get(self.USD_RUB_FIGI, 0)
 
-            for asset in user_assets:
-                self._add_active_in_persons_portfolio(
-                    ident=asset.figi,
-                    lot=asset.lot,
-                    average_price_buy_in_rub=asset.average_price_in_rub,
-                    average_price_buy_in_usd=asset.average_price_in_usd,
-                    current_price=current_prices_of_assets.get(asset.figi, None),
-                    currency=currencies.get(asset.figi, None),
-                    name=names.get(asset.figi, None),
-                    pk=asset.pk
-                )
-
+            for group_asset in (user_stock, user_bond, user_currency, user_etf):
+                for asset in group_asset:
+                    self._add_active_in_persons_portfolio(
+                        ident=asset.figi.figi,
+                        lot=asset.lot,
+                        average_price_buy_in_rub=asset.average_price_in_rub,
+                        average_price_buy_in_usd=asset.average_price_in_usd,
+                        current_price=current_prices_of_assets.get(asset.figi.figi, None),
+                        currency=currencies.get(asset.figi.figi, None),
+                        name=names.get(asset.figi.figi, None),
+                        pk=asset.pk,
+                        stock_tag=group_asset.model._meta.model_name
+                    )
         except (AttributeError, KeyError) as ex:
             logger.warning(ex)
 
+    def _get_other_users_assets(self):
+        return (self._get_users_assets_from_model(assets=type_of_assets)
+                for type_of_assets in ('bond', 'currency', 'etf'))
+
 
 class PortfolioMaker:
-    def __init__(self, assets_type: str, user: User, assets: Union[List[UserStock], List[PersonsCrypto]] = None):
+    def __init__(self, assets_type: str, user: User, assets=None):
         portfolio_class = self._get_assets_class(assets_type)
 
         if not assets:
@@ -328,7 +345,10 @@ class PortfolioMaker:
         return assets_classes[assets_type]
 
     @staticmethod
-    def _get_user_assets(assets_type, user):
-        return PortfolioConfig.users_models[assets_type].objects.filter(user=user)
+    def _get_user_assets(assets_type, user): #пофиксить эту функцию . вверху есть подобная
+        if assets_type == 'crypto':
+            return PortfolioConfig.users_models[assets_type].objects.filter(user=user)
+        elif assets_type == 'stock':
+            return PortfolioConfig.users_models[assets_type]['share'].objects.filter(user=user)
 
 # //TODO сделать чтообы актив не отображался если маленький баланс

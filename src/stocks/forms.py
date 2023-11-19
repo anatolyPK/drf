@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from stocks.models import UserTransaction, Share, Bond, Currency, Etf
+from stocks.models import UserShareTransaction, UserBondTransaction, UserCurrencyTransaction, UserEtfTransaction, Share, Bond, Currency, Etf
 from datetime import datetime
 
 
@@ -102,15 +102,23 @@ class AddStockForm(forms.Form):
         cleaned_data['assets_name'] = self._get_chosen_asset(cleaned_data)
 
     def _get_chosen_asset(self, cleaned_data):
+        dct = {
+            'names_share': 'share',
+            'names_bond': 'bond',
+            'names_etf': 'etf',
+            'names_currency': 'currency'
+        }
         data_counter = 0
         for name in ('names_share', 'names_bond', 'names_etf', 'names_currency'):
             if cleaned_data[name]:
                 asset = cleaned_data[name]
+                dct_name = name
                 data_counter += 1
 
         if data_counter == 1:
-            return asset
+            return asset, dct[dct_name]
 
         raise ValidationError(
             'Выберите один актив!',
         )
+

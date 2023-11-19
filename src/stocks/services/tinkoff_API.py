@@ -76,6 +76,9 @@ class TinkoffAPI:
             figi = list()
         figi.append(USD_RUB_FIGI)  # usd/rub
         assets = client.market_data.get_last_prices(figi=figi)
+        logger_debug.debug(f'figi {figi}')
+        dcta = {asset.figi: convert_tinkoff_money_in_currency(asset.price) for asset in assets.last_prices}
+        logger_debug.debug(f'PRICE {dcta}')
         return {asset.figi: convert_tinkoff_money_in_currency(asset.price) for asset in assets.last_prices}
 
     @classmethod

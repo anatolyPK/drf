@@ -53,11 +53,11 @@
                         </tr>
                         <tr>
                             <th scope="row" class="text-start">Цена (без НКД), %</th>
-                            <td class="text-end">{{selected_asset.market_price}}</td>
+                            <td class="text-end">{{selected_asset.rounded_market_price}}</td>
                         </tr>
                         <tr>
                             <th scope="row" class="text-start">Цена (c НКД), %</th>
-                            <td class="text-end">{{selected_asset.market_price_with_aci}}</td>
+                            <td class="text-end">{{selected_asset.rounded_market_price_with_aci}}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -67,15 +67,15 @@
                         <tbody>
                         <tr>
                             <th scope="row" class="text-start">Эффективная доходность</th>
-                            <td class="text-end"> {{ selected_asset.ytm }}</td>
+                            <td class="text-end"> {{ selected_asset.rounded_ytm }}</td>
                         </tr>
                         <tr>
                             <th scope="row" class="text-start">Текущая доходность</th>
-                            <td class="text-end">{{selected_asset.current_yield}}</td>
+                            <td class="text-end">{{selected_asset.rounded_current_yield}}</td>
                         </tr>
                         <tr>
                             <th scope="row" class="text-start">Скорректированная доходность</th>
-                            <td class="text-end">{{selected_asset.adjusted_current_yield}}</td>
+                            <td class="text-end">{{selected_asset.rounded_adjusted_current_yield}}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -90,11 +90,11 @@
                         </tr>
                         <tr>
                             <th scope="row" class="text-start">НКД</th>
-                            <td class="text-end">{{selected_asset.aci_value}}</td>
+                            <td class="text-end">{{selected_asset.rounded_aci_value}}</td>
                         </tr>
                         <tr>
                             <th scope="row" class="text-start"> Лет до погашения</th>
-                            <td class="text-end">{{selected_asset.years_to_maturity}}</td>
+                            <td class="text-end">{{selected_asset.rounded_years_to_maturity}}</td>
                         </tr>
                         <tr>
                             <th scope="row" class="text-start"> Количество выплат в год</th>

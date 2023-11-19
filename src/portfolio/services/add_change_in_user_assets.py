@@ -98,10 +98,11 @@ class TransactionHandler(PortfolioConfig):
 
         :param kwargs: Словарь с параметрами транзакции.
         """
+        logger_debug.debug(kwargs)
         try:
-            transaction = (TransactionHandler._users_transactions_models[kwargs['assets_type']]
+            transaction = (TransactionHandler._users_transactions_models[kwargs['assets_type']][kwargs['asset_name']]
                            (is_buy_or_sell=kwargs['is_buy_or_sell'],
-                            figi=kwargs['figi'],
+                            figi=kwargs['asset'],
                             lot=kwargs['lot'],
                             user=kwargs['user'],
                             price_in_rub=kwargs['price_in_rub'],
@@ -170,8 +171,8 @@ class PortfolioHandler(PortfolioConfig):
     @staticmethod
     def _get_stock_assets(**kwargs):
         try:
-            return PortfolioHandler.users_models[kwargs['assets_type']].objects.filter(user=kwargs['user'],
-                                                                                       figi=kwargs['figi']).first()
+            return PortfolioHandler.users_models[kwargs['assets_type']][kwargs['asset_name']].objects.filter(user=kwargs['user'],
+                                                                                       figi=kwargs['asset']).first()
         except (KeyError, NameError) as ex:
             logger.warning((kwargs, ex))
 
@@ -206,8 +207,9 @@ class PortfolioHandler(PortfolioConfig):
     @staticmethod
     def _add_new_asset_in_stock_portfolio(**kwargs):
         try:
-            new_active = PortfolioConfig.users_models[kwargs['assets_type']](user=kwargs['user'],
-                                                                             figi=kwargs['figi'],
+            logger_debug.debug(kwargs)
+            new_active = PortfolioConfig.users_models[kwargs['assets_type']][kwargs['asset_name']](user=kwargs['user'],
+                                                                             figi=kwargs['asset'],
                                                                              lot=kwargs['lot'] if kwargs[
                                                                                  'is_buy_or_sell'] else -kwargs[
                                                                                  'lot'],
@@ -265,7 +267,9 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                                       date_operation=None,
                                                       figi: str = None,
                                                       token_1: str = None,
-                                                      token_2: str = None):
+                                                      token_2: str = None,
+                                                      asset_name: str = None,
+                                                      asset=None):
         """
         Добавляет транзакцию в базу данных и обновляет портфель пользователя.
 
@@ -279,6 +283,7 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
         :param figi: ФИГИ актива (для 'stock').
         :param token_1: Токен актива (для 'crypto').
         :param token_2: Дополнительный токен актива (для 'crypto').
+        :param asset_name: Вид актива фондового рынка (для 'stock').
         """
         price_in_rub, price_in_usd = cls._get_rub_and_usd_price(date_operation=date_operation,
                                                                 price=price_currency,
@@ -294,7 +299,9 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                   date_operation=date_operation,
                                   token_1=token_1,
                                   token_2=token_2,
-                                  figi=figi)
+                                  figi=figi,
+                                  asset_name=asset_name,
+                                  asset=asset)
 
         cls.update_persons_portfolio(assets_type=assets_type,
                                      is_buy_or_sell=is_buy_or_sell,
@@ -306,7 +313,9 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                      date_operation=date_operation,
                                      token_1=token_1,
                                      token_2=token_2,
-                                     figi=figi)
+                                     figi=figi,
+                                     asset_name=asset_name,
+                                     asset=asset)
 
         if assets_type == 'crypto' and token_1 not in ('rub', 'usdt', 'usdc', 'busd') and token_1 != 'rub':
             cls.add_reverse_transaction(assets_type=assets_type,
@@ -334,7 +343,9 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                  figi: str = None,
                                  token_1: str = None,
                                  token_2: str = None,
-                                 is_transaction_update: bool = False):
+                                 is_transaction_update: bool = False,
+                                 asset_name: str = None,
+                                 asset=None):
         """
         Обновляет актив пользователя в его портфеле.
         Если актив отсутствует-добавляет его
@@ -364,7 +375,9 @@ class AssetsChange(TransactionHandler, PortfolioHandler):
                                          token_1=token_1,
                                          token_2=token_2,
                                          figi=figi,
-                                         is_transaction_update=is_transaction_update)
+                                         is_transaction_update=is_transaction_update,
+                                         asset_name=asset_name,
+                                         asset=asset)
 
     @classmethod
     def add_reverse_transaction(cls, **kwargs):

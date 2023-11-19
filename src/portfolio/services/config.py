@@ -1,5 +1,6 @@
 from crypto.models import PersonsCrypto, PersonsTransactions, CryptoInvest
-from stocks.models import UserStock, UserTransaction, StockInvest, Share, Bond, Etf, Currency
+from stocks.models import StockInvest, Share, Bond, Etf, Currency, UserShare, UserCurrency, \
+    UserBond, UserEtf, UserShareTransaction, UserBondTransaction, UserCurrencyTransaction, UserEtfTransaction
 
 
 class PortfolioConfig:
@@ -11,12 +12,22 @@ class PortfolioConfig:
 
     users_models = {
         'crypto': PersonsCrypto,
-        'stock': UserStock
+        'stock': {
+            'share': UserShare,
+            'bond': UserBond,
+            'currency': UserCurrency,
+            'etf': UserEtf,
+        }
     }
 
     _users_transactions_models = {
         'crypto': PersonsTransactions,
-        'stock': UserTransaction
+        'stock': {
+            'share': UserShareTransaction,
+            'bond': UserBondTransaction,
+            'currency': UserCurrencyTransaction,
+            'etf': UserEtfTransaction,
+        }
     }
 
     _users_invest_sum_models = {

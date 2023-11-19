@@ -32,6 +32,11 @@ class BaseBond:
         self.market_price_with_aci = PriceAndTax.get_market_price_with_aci(market_price=self.market_price,
                                                                            aci=self.aci_value)
 
+        self.rounded_market_price = round(self.market_price, ROUND_DIGIT)
+        self.rounded_aci_value = round(self.aci_value, ROUND_DIGIT)
+        self.rounded_years_to_maturity = round(self.years_to_maturity, ROUND_DIGIT)
+        self.rounded_market_price_with_aci = round(self.market_price_with_aci, ROUND_DIGIT)
+
 
 class PriceAndTax:
     @staticmethod
@@ -153,8 +158,12 @@ class BondCalculator(BaseBond):
         self.nominal_yield = self._get_nominal_yield_to_maturity()
         self.current_yield = self._get_current_yield()
         self.adjusted_current_yield = self._get_adjusted_current_yield()
-        self.effective_yield = self._get_effective_yield()
         self.ytm = self._get_ytm()
+
+        self.rounded_nominal_yield = round(self.nominal_yield, ROUND_DIGIT)
+        self.rounded_current_yield = round(self.current_yield, ROUND_DIGIT)
+        self.rounded_adjusted_current_yield = round(self.adjusted_current_yield, ROUND_DIGIT)
+        self.rounded_ytm = round(self.ytm, ROUND_DIGIT)
 
     def _get_nominal_yield_to_maturity(self):
         logger_debug.debug(f'Nominal yield: {self.coupon_info.yearly_coupon_payment / self.nominal * 100}')
@@ -170,13 +179,6 @@ class BondCalculator(BaseBond):
         """Рассчитывает скорректированную доходность с УЧЕТОМ НКД и цены погашения"""
         logger_debug.debug(f'ADJUSTED CURRENT: {self.current_yield + (100 - self.market_price - self.aci_value / 100) / self.years_to_maturity}')
         return self.current_yield + (100 - self.market_price - self.aci_value / 100) / self.years_to_maturity
-
-    def _get_effective_yield(self):
-        top = ((self.nominal - self.market_price * 10 - self.aci_value) / self.years_to_maturity
-               + self.coupon_info.yearly_coupon_payment)
-        bot = (0.4 * self.nominal + 0.6 * self.market_price * 10)
-        logger_debug.debug(f'EFFECTIVE: {top * 100 / bot}')
-        return top * 100 / bot
 
     def _get_ytm(self, step=0.000015, max_iterations=10000, tolerance=0.15):
         left = self.market_price * 10 + self.aci_value

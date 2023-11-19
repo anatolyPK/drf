@@ -5,38 +5,38 @@ from django.db import models
 from django.utils import timezone
 
 
-class UserStock(models.Model):
-    """Модель, хранящая данные об активах пользователей"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    figi = models.CharField(max_length=32, verbose_name='figi инструмента')
-    lot = models.FloatField(verbose_name='Количество актива')
-    average_price_in_rub = models.FloatField(verbose_name='Средняя цена в рублях', default=0)
-    average_price_in_usd = models.FloatField(verbose_name='Средняя цена в долларах', default=0)
+# class UserStock(models.Model):
+#     """Модель, хранящая данные об активах пользователей"""
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     figi = models.CharField(max_length=32, verbose_name='figi инструмента')
+#     lot = models.FloatField(verbose_name='Количество актива')
+#     average_price_in_rub = models.FloatField(verbose_name='Средняя цена в рублях', default=0)
+#     average_price_in_usd = models.FloatField(verbose_name='Средняя цена в долларах', default=0)
+#
+#     def __str__(self):
+#         return str(self.user) + '  ' + str(self.figi)
 
-    def __str__(self):
-        return str(self.user) + '  ' + str(self.figi)
 
-
-class UserTransaction(models.Model):
-    """Модель, хранящая данные о транзакциях активов пользователей"""
-
-    CHOICES_OPERATION_TYPE = [
-        (1, 'Покупка'),
-        (0, 'Продажа'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    is_buy_or_sell = models.BooleanField(verbose_name='Операция', choices=CHOICES_OPERATION_TYPE)
-    figi = models.CharField(max_length=16, verbose_name='figi инструмента')
-    currency = models.CharField(max_length=16, verbose_name='Валюта покупки')
-    price_in_rub = models.FloatField(verbose_name='Цена на момент покупки в рублях', default=0)
-    price_in_usd = models.FloatField(verbose_name='Цена на момент покупки в долларах', default=0)
-    lot = models.FloatField(verbose_name='Количество актива')
-    date_operation = models.DateField(default=timezone.now())
-
-    def __str__(self):
-        return self.figi
-
+# class UserTransaction(models.Model):
+#     """Модель, хранящая данные о транзакциях активов пользователей"""
+#
+#     CHOICES_OPERATION_TYPE = [
+#         (1, 'Покупка'),
+#         (0, 'Продажа'),
+#     ]
+#
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     is_buy_or_sell = models.BooleanField(verbose_name='Операция', choices=CHOICES_OPERATION_TYPE)
+#     figi = models.CharField(max_length=16, verbose_name='figi инструмента')
+#     currency = models.CharField(max_length=16, verbose_name='Валюта покупки')
+#     price_in_rub = models.FloatField(verbose_name='Цена на момент покупки в рублях', default=0)
+#     price_in_usd = models.FloatField(verbose_name='Цена на момент покупки в долларах', default=0)
+#     lot = models.FloatField(verbose_name='Количество актива')
+#     date_operation = models.DateField(default=timezone.now())
+#
+#     def __str__(self):
+#         return self.figi
+#
 
 class StockInvest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stock_invest')
@@ -111,3 +111,105 @@ class Coupon(models.Model):
     coupon_end_date = models.DateTimeField(verbose_name='Окончание купонного периода')
     coupon_period = models.IntegerField(verbose_name='Купонный период в днях')
     coupon_type = models.CharField(max_length=32, verbose_name='Тип купона')
+
+
+class CommonUserAssets(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    lot = models.FloatField(verbose_name='Количество актива')
+    average_price_in_rub = models.FloatField(verbose_name='Средняя цена в рублях', default=0)
+    average_price_in_usd = models.FloatField(verbose_name='Средняя цена в долларах', default=0)
+
+    class Meta:
+        abstract = True
+
+
+class UserShare(CommonUserAssets):
+    figi = models.ForeignKey(Share, verbose_name='figi инструмента',
+                             related_name='user_share',
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.figi)
+
+
+class UserBond(CommonUserAssets):
+    figi = models.ForeignKey(Bond, verbose_name='figi инструмента',
+                             related_name='user_bond',
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.figi)
+
+
+class UserEtf(CommonUserAssets):
+    figi = models.ForeignKey(Etf, verbose_name='figi инструмента',
+                             related_name='user_etf',
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.figi)
+
+
+class UserCurrency(CommonUserAssets):
+    figi = models.ForeignKey(Currency, verbose_name='figi инструмента',
+                             related_name='user_currency',
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.figi)
+
+
+class CommonUserTransaction(models.Model):
+    """Модель, хранящая данные о транзакциях активов пользователей"""
+
+    CHOICES_OPERATION_TYPE = [
+        (1, 'Покупка'),
+        (0, 'Продажа'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_buy_or_sell = models.BooleanField(verbose_name='Операция', choices=CHOICES_OPERATION_TYPE)
+    currency = models.CharField(max_length=12, verbose_name='Валюта покупки')
+    price_in_rub = models.FloatField(verbose_name='Цена на момент покупки в рублях', default=0)
+    price_in_usd = models.FloatField(verbose_name='Цена на момент покупки в долларах', default=0)
+    lot = models.FloatField(verbose_name='Количество актива')
+    date_operation = models.DateField(default=timezone.now())
+
+    class Meta:
+        abstract = True
+
+
+class UserShareTransaction(CommonUserTransaction):
+    figi = models.ForeignKey(Share, verbose_name='figi инструмента',
+                             related_name='user_share_transaction',
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.figi)
+
+
+class UserBondTransaction(CommonUserTransaction):
+    figi = models.ForeignKey(Bond, verbose_name='figi инструмента',
+                             related_name='user_bond_transaction',
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.figi)
+
+
+class UserEtfTransaction(CommonUserTransaction):
+    figi = models.ForeignKey(Etf, verbose_name='figi инструмента',
+                             related_name='user_etf_transaction',
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.figi)
+
+
+class UserCurrencyTransaction(CommonUserTransaction):
+    figi = models.ForeignKey(Currency, verbose_name='figi инструмента',
+                             related_name='user_currency_transaction',
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '  ' + str(self.figi)
