@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load stock_tags %}
+{% block content %}
+<p>
+<div>
+
+</div>
+</p>
+
+
+<a class="btn btn-primary" href="{% url 'stocks:add_stock' %}" role="button">Добавить актив</a>
+<a class="btn btn-primary" href="{% url 'stocks:bonds_calcul' %}" role="button">Калькулятор облигаций</a>
+
+{{ object_list }}
+<div class="btn-group" role="group" aria-label="Portfolios">
+    {% for portfolio in portfolios %}
+        <a class="btn btn-primary" href="{% url 'stocks:stock_portfolio' portfolio.id %}" role="button">{{ portfolio.name }}</a>
+    {% endfor %}
+</div>
+
+{%endblock%}

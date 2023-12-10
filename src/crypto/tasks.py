@@ -21,7 +21,7 @@ def update_cache_tickers_price():
     for price in prices:
         cache_name = price['symbol']
         current_price = float(price['price'])
-        cache.set(cache_name, current_price, 30)
+        cache.set(cache_name, current_price, 300)
 
 
 @shared_task()

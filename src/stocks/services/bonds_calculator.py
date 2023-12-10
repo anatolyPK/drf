@@ -1,6 +1,8 @@
 from datetime import datetime, date, timedelta
 
 from django.utils import timezone
+from django.core.cache import cache
+from scipy.optimize import root_scalar, newton
 
 from stocks.models import Bond, Coupon
 from stocks.services.tinkoff_API import TinkoffAPI
@@ -41,7 +43,8 @@ class BaseBond:
 class PriceAndTax:
     @staticmethod
     def get_market_price(figi):
-        return TinkoffAPI.get_last_price_asset(figi=[figi])[figi]
+        logger_debug.debug(cache.get(figi))
+        return cache.get(figi)
 
     @staticmethod
     def get_market_price_with_aci(market_price, aci):
@@ -49,7 +52,6 @@ class PriceAndTax:
 
     @staticmethod
     def get_tax(tax_size):
-        logger_debug.debug(f'{tax_size} {type(tax_size)}')
         if tax_size == '0':
             return 1
         elif tax_size == '13':
@@ -63,7 +65,6 @@ class PriceAndTax:
 class CouponCalculations:
     @staticmethod
     def count_days_to_next_coupon(next_coupon):
-        logger_debug.debug(f'Days to coupon {(timezone.make_naive(next_coupon.coupon_date) - datetime.now()).days}')
         return (timezone.make_naive(next_coupon.coupon_date) - datetime.now()).days
 
     @staticmethod
@@ -113,7 +114,6 @@ class CouponCalculations:
 
         if payment_per_year != bond.coupon_quantity_per_year:
             logger_debug.debug(f'{payment_per_year} != {bond.coupon_quantity_per_year}')
-        logger_debug.debug(f'PAYMENT PER YEAR: {total_payment}')
         return total_payment * tax
 
 
@@ -148,12 +148,12 @@ class BondCalculatorService:
     @staticmethod
     def get_years_to_maturity(maturity_date):
         delta = abs(maturity_date - date.today())
-        logger_debug.debug(f'YEARS: {delta.days / 365}')
         return delta.days / 365
 
 
 class BondCalculator(BaseBond):
-    def __init__(self, bond: Bond, tax_size: int):
+    def __init__(self, bond: Bond, tax_size: str):
+        logger_debug.debug(bond)
         super().__init__(bond, tax_size)
         self.nominal_yield = self._get_nominal_yield_to_maturity()
         self.current_yield = self._get_current_yield()
@@ -165,37 +165,35 @@ class BondCalculator(BaseBond):
         self.rounded_adjusted_current_yield = round(self.adjusted_current_yield, ROUND_DIGIT)
         self.rounded_ytm = round(self.ytm, ROUND_DIGIT)
 
+        logger_debug.debug(self.rounded_ytm)
+        logger_debug.debug(self.rounded_current_yield)
+
     def _get_nominal_yield_to_maturity(self):
-        logger_debug.debug(f'Nominal yield: {self.coupon_info.yearly_coupon_payment / self.nominal * 100}')
         return self.coupon_info.yearly_coupon_payment / self.nominal * 100
 
     def _get_current_yield(self):
         """Рассчитывает текущую доходность с УЧЕТОМ НКД"""
-        logger_debug.debug(f'MARKET PRICE: {self.market_price * 10}')
-        logger_debug.debug(f'Current Yield: {self.coupon_info.yearly_coupon_payment / (self.market_price * 10 + self.aci_value) * 100}')
         return self.coupon_info.yearly_coupon_payment / (self.market_price * 10 + self.aci_value) * 100
 
     def _get_adjusted_current_yield(self):
         """Рассчитывает скорректированную доходность с УЧЕТОМ НКД и цены погашения"""
-        logger_debug.debug(f'ADJUSTED CURRENT: {self.current_yield + (100 - self.market_price - self.aci_value / 100) / self.years_to_maturity}')
         return self.current_yield + (100 - self.market_price - self.aci_value / 100) / self.years_to_maturity
 
-    def _get_ytm(self, step=0.000015, max_iterations=10000, tolerance=0.15):
-        left = self.market_price * 10 + self.aci_value
-        ytm_value = self.current_yield / 100
-        date_today = datetime.combine(date.today(), datetime.min.time())
+    def _calculate_bond_price(self, rate):
+        price = 0
+        date_today = date.today()
+        for i in range(len(self.coupon_info.coupons_to_maturity)):
+            pay_one_bond = self.coupon_info.coupons_to_maturity[i].pay_one_bond * self.tax
+            if i == len(self.coupon_info.coupons_to_maturity) - 1:
+                pay_one_bond += self.nominal
 
-        for _ in range(max_iterations):
-            right_sum = 0
-            for i in range(len(self.coupon_info.coupons_to_maturity)):
-                pay_one_bond = self.coupon_info.coupons_to_maturity[i].pay_one_bond * self.tax
-                if i == len(self.coupon_info.coupons_to_maturity) - 1:
-                    pay_one_bond += self.nominal
+            coupon_date = self.coupon_info.coupons_to_maturity[i].coupon_date.date()
+            if coupon_date > date_today:
+                days_to_maturity = (coupon_date - date_today).days
+                price += pay_one_bond / (1 + rate) ** (days_to_maturity / 365)
+        return price - (self.market_price * 10 + self.aci_value)
 
-                coupon_date = timezone.make_naive(self.coupon_info.coupons_to_maturity[i].coupon_date)
-
-                right_sum += pay_one_bond / (1 + ytm_value) ** ((coupon_date - date_today).days / 365)
-            if abs(left - right_sum) < tolerance:
-                return ytm_value * 100
-            ytm_value += step
-        return ytm_value
+    def _get_ytm(self):
+        rate = 0.05  # Начальное предположение для ставки
+        ytm = newton(self._calculate_bond_price, rate)
+        return ytm * 100  # Преобразование результата в проценты

@@ -1,7 +1,9 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.forms import ModelForm
 
-from stocks.models import UserShareTransaction, UserBondTransaction, UserCurrencyTransaction, UserEtfTransaction, Share, Bond, Currency, Etf
+from stocks.models import UserShareTransaction, UserBondTransaction, UserCurrencyTransaction, UserEtfTransaction, Share, \
+    Bond, Currency, Etf, Portfolio
 from datetime import datetime
 
 
@@ -41,6 +43,14 @@ class BondsCalculater(forms.Form):
 
 
 class AddStockForm(forms.Form):
+    def __init__(self, user=None, *args, **kwargs):
+        super(AddStockForm, self).__init__(*args, **kwargs)
+        self.fields['portfolios'] = forms.ModelMultipleChoiceField(
+            label='Портфель',
+            queryset=Portfolio.objects.filter(user=user),
+            required=False,
+        )
+
     CHOICES_OPERATION_TYPE = [
         (1, 'Покупка'),
         (0, 'Продажа'),
@@ -122,3 +132,8 @@ class AddStockForm(forms.Form):
             'Выберите один актив!',
         )
 
+
+class PortfolioForm(ModelForm):
+    class Meta:
+        model = Portfolio
+        fields = ["name", "description"]

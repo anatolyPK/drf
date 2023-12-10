@@ -3,11 +3,6 @@ from django import template
 
 register = template.Library()
 
-import logging
-
-
-logger_debug = logging.getLogger('debug')
-
 
 @register.filter(name='add_plus_or_minus')
 def add_plus_or_minus(value):

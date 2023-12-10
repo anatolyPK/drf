@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<p>
+<div></div>
+</p>
+
+
+<a class="btn btn-primary" href="{% url 'stocks:add_stock' %}" role="button">Добавить актив</a>
+<a class="btn btn-primary" href="{% url 'stocks:bonds_calcul' %}" role="button">Калькулятор облигаций</a>
+<a class="btn btn-primary" href="{% url 'stocks:transactions' assets_type=share %}" role="button">Транзакции</a>
+
+
+<p>
+<div></div>
+</p>
+
+
+<ul class="list-articles">
+    <form method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Сохранить">
+        <a href="{% url 'crypto:person_crypto_transaction_delete' object.pk %}" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">
+            <i class="fas fa-times"></i> Удалить
+        </a>
+    </form>
+</ul>
+
+
+{%endblock%}

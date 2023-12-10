@@ -31,8 +31,8 @@ class AddInvestSummTest(TestCase):
 
         new_object = CryptoInvest.objects.all().first()
 
-        self.assertEqual(new_object.invest_sum_in_rub, 1555)
-        self.assertEqual(new_object.invest_sum_in_usd, 133)
+        self.assertEqual(new_object._invest_sum_in_rub, 1555)
+        self.assertEqual(new_object._invest_sum_in_usd, 133)
         self.assertEqual(new_object.date_operation,
                          datetime.strptime('2023-03-21', '%Y-%m-%d').date())
         self.assertEqual(new_object.user, self.test_user1)
@@ -46,8 +46,8 @@ class AddInvestSummTest(TestCase):
 
         new_object = StockInvest.objects.all().first()
 
-        self.assertEqual(new_object.invest_sum_in_rub, 1555)
-        self.assertEqual(new_object.invest_sum_in_usd, 133)
+        self.assertEqual(new_object._invest_sum_in_rub, 1555)
+        self.assertEqual(new_object._invest_sum_in_usd, 133)
         self.assertEqual(new_object.date_operation,
                          datetime.strptime('2023-03-21', '%Y-%m-%d').date())
         self.assertEqual(new_object.user, self.test_user1)

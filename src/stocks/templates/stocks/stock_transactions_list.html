@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<p>
+<div>
+
+</div>
+</p>
+
+
+<a class="btn btn-primary" href="{% url 'stocks:add_stock' %}" role="button">Добавить актив</a>
+<a class="btn btn-primary" href="{% url 'stocks:bonds_calcul' %}" role="button">Калькулятор облигаций</a>
+<a class="btn btn-primary" href="{% url 'stocks:transactions' assets_type=share %}" role="button">Транзакции</a>
+
+<div style="margin-top: 10px;"></div>
+
+<a class="btn btn-info" href="{% url 'stocks:transactions' assets_type=share %}" role="button">Акции</a>
+<a class="btn btn-info" href="{% url 'stocks:transactions' assets_type=bond %}" role="button">Облигации</a>
+<a class="btn btn-info" href="{% url 'stocks:transactions' assets_type=etf %}" role="button">Етф</a>
+<a class="btn btn-info" href="{% url 'stocks:transactions' assets_type=currency %}" role="button">Валюты</a>
+
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col"></th>
+
+        <th scope="col">
+            <p class="h6">
+                Название
+
+                <a href="?ordering=-figi__name">
+                    <span class="arrow">&#8593;</span>
+                </a>
+
+                <a href="?ordering=figi__name">
+                    <span class="arrow">&#8595;</span>
+                </a>
+
+
+            </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6">Операция
+                <a href="?ordering=-is_buy_or_sell">
+                    <span class="arrow">&#8593;</span>
+                </a>
+
+                <a href="?ordering=is_buy_or_sell">
+                    <span class="arrow">&#8595;</span>
+                </a>
+            </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6">Цена в $
+                <a href="?ordering=-price_in_usd">
+                    <span class="arrow">&#8593;</span>
+                </a>
+
+                <a href="?ordering=price_in_rub">
+                    <span class="arrow">&#8595;</span>
+                </a>
+            </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Цена в Р
+                <a href="?ordering=-price_in_rub">
+                    <span class="arrow">&#8593;</span>
+                </a>
+
+                <a href="?ordering=price_in_rub">
+                    <span class="arrow">&#8595;</span>
+                </a>
+            </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Количество
+                <a href="?ordering=-lot">
+                    <span class="arrow">&#8593;</span>
+                </a>
+
+                <a href="?ordering=lot">
+                    <span class="arrow">&#8595;</span>
+                </a>
+            </p>
+        </th>
+
+        <th scope="col">
+            <p class="h6"> Дата операции
+                <a href="?ordering=-date_operation">
+                    <span class="arrow">&#8593;</span>
+                </a>
+
+                <a href="?ordering=date_operation">
+                    <span class="arrow">&#8595;</span>
+                </a>
+            </p>
+        </th>
+        <th scope="col">
+        </th>
+    </tr>
+    </tr>
+    </thead>
+    <tbody>
+    {% for transaction in object_list %}
+    <tr>
+        <th scope="row"> {{ forloop.counter}}</th>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.figi.name }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {% if transaction.is_buy_or_sell %}
+                        <div> Покупка</div>
+                        {% else %}
+                        <div>Продажа</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.price_in_usd}}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.price_in_rub }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.lot }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        {{ transaction.date_operation }}
+                    </div>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div class="container text-left">
+                <div class="row">
+                    <div class="col">
+                        <a class="btn btn-primary"
+                           href="{% url 'stocks:transaction_edit' assets_type transaction.pk %}"
+                           role="button">Редактировать</a>
+                    </div>
+                </div>
+            </div>
+        </td>
+
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+<div class="pagination justify-content-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1" aria-label="First">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link"> Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+
+
+{%endblock%}

@@ -24,8 +24,8 @@
                 <span class="{% if balance.profit_in_currency_rub >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
                 {{ balance.profit_in_currency_rub|add_plus_or_minus }} ₽
             </span>
-                <span class="{% if balance.profit_in_percents_rub >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                {{ balance.profit_in_percents_rub|add_plus_or_minus }} %
+                <span class="{% if balance.profit_in_percent_rub >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_in_percent_rub|add_plus_or_minus }} %
             </span>
             </p>
         </th>
@@ -36,8 +36,8 @@
                 <span class="{% if balance.profit_in_currency_usd >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
                 {{ balance.profit_in_currency_usd|add_plus_or_minus }} $
             </span>
-                <span class="{% if balance.profit_in_percents_usd >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                    {{ balance.profit_in_percents_usd|add_plus_or_minus }} %
+                <span class="{% if balance.profit_in_percent_usd >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                    {{ balance.profit_in_percent_usd|add_plus_or_minus }} %
                 </span>
             </p>
         </th>
@@ -49,26 +49,28 @@
         <th scope="col">
             <p class="h5"> Вложено {{ balance.invest_sum_in_rub }} ₽ </p>
             <p class="h5">
-             <span class="{% if balance.profit_invest_in_rub_in_currency >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                {{ balance.profit_invest_in_rub_in_currency|add_plus_or_minus }} ₽
+             <span class="{% if balance.profit_invest_in_currency_rub >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_invest_in_currency_rub|add_plus_or_minus }} ₽
             </span>
 
-                <span class="{% if balance.profit_invest_in_rub_in_percent >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                {{ balance.profit_invest_in_rub_in_percent|add_plus_or_minus }} %
-            </span>
+                <span class="{% if balance.profit_invest_in_percent_rub >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_invest_in_percent_rub|add_plus_or_minus }} %
+                {{balance.irr_rub}} %
+                </span>
 
         </th>
 
         <th scope="col">
             <p class="h5"> Вложено {{ balance.invest_sum_in_usd }} $ </p>
             <p class="h5">
-                <span class="{% if balance.profit_invest_in_usd_in_currency < 0 %}number-less-than-or-equal-to-0 {% else %}number-greater-than-0{% endif %}">
-                {{ balance.profit_invest_in_usd_in_currency|add_plus_or_minus }} $
+                <span class="{% if balance.profit_invest_in_currency_usd < 0 %}number-less-than-or-equal-to-0 {% else %}number-greater-than-0{% endif %}">
+                {{ balance.profit_invest_in_currency_usd|add_plus_or_minus }} $
                 </span>
 
 
-                <span class="{% if balance.profit_invest_in_usd_in_percent >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                {{ balance.profit_invest_in_usd_in_percent|add_plus_or_minus }} %
+                <span class="{% if balance.profit_invest_in_percent_usd >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                {{ balance.profit_invest_in_percent_usd|add_plus_or_minus }} %
+                    {{balance.irr_usd}} %
             </span>
             </p>
         </th>
@@ -95,11 +97,7 @@
         </th>
 
         <th scope="col">
-            <p class="h6"> Прибыль, $ </p>
-        </th>
-
-        <th scope="col">
-            <p class="h6"> Прибыль, % </p>
+            <p class="h6"> Прибыль </p>
         </th>
 
         <th scope="col">
@@ -148,7 +146,7 @@
             <div class="container text-left">
                 <div class="row">
                     <div class="col">
-                        {{ value.average_price_buy_in_usd}}
+                        {{ value.average_price_buy }}
                     </div>
                 </div>
             </div>
@@ -160,24 +158,18 @@
                 <div class="row">
                     <div class="col">
                          <span class="{% if value.profit_in_currency >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                    {{ value.profit_in_currency|add_plus_or_minus }}
+                    {{ value.profit_in_currency|add_plus_or_minus }} $
                 </span>
+                        <br>
+                        <span class="{% if value.profit_in_percent >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
+                    {{ value.profit_in_percent|add_plus_or_minus }} %
+                </span>
+
                     </div>
                 </div>
             </div>
         </td>
 
-        <td>
-            <div class="container text-left">
-                <div class="row">
-                    <div class="col">
-                        <span class="{% if value.profit_in_percent >= 0 %}number-greater-than-0{% else %}number-less-than-or-equal-to-0{% endif %}">
-                    {{ value.profit_in_percent|add_plus_or_minus }}
-                </span>
-                    </div>
-                </div>
-            </div>
-        </td>
 
         <td>
             <div class="container text-left">
@@ -193,7 +185,7 @@
             <div class="container text-left">
                 <div class="row">
                     <div class="col">
-                        {{ value.total_now_balance_in_usd}}
+                        {{ value.total_balance}}
                     </div>
                 </div>
             </div>

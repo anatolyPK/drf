@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<p>
+    <div>
+</div>
+</p>
+
+<a class="btn btn-primary" href="{% url 'stocks:stocks' %}" role="button">Баланс</a>
+
+<p>
+    <div>
+</div>
+</p>
+
+<ul class="list-articles">
+
+    <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+</form>
+
+</ul>
+
+{%endblock%}

@@ -10,12 +10,13 @@ from django.conf import settings
 from portfolio.services.add_change_in_user_assets import AssetsChange
 from portfolio.services.portfolio import CryptoPortfolio, PortfolioMaker
 from portfolio.services.portfolio_balance import write_in_db_portfolio_balance
+from stocks.utils import DataMixinPortfolio
 from .forms import AddCryptoForm, AddCryptoInvestForm
 from .models import PersonsCrypto, PersonsTransactions
 from .serializers import CryptoTransactionsSerializer
 from .tasks import add_transactions_and_update_users_portfolio, update_crypto_transaction, add_invest_sum_task
 
-from deposits.utils import menu, DataMixin
+from deposits.utils import menu, DataMixinMenu
 
 import logging
 
@@ -23,7 +24,7 @@ logger = logging.getLogger('main')
 logger_debug = logging.getLogger('debug')
 
 
-class CryptoPersonBalance(ListView, DataMixin):
+class CryptoPersonBalance(ListView, DataMixinMenu, DataMixinPortfolio):
     model = PersonsCrypto
     template_name = 'crypto/cryptos.html'
 
@@ -32,18 +33,17 @@ class CryptoPersonBalance(ListView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context_from_mixin = self.get_user_context(**kwargs)
+        context_from_mixin = self.get_user_menu(**kwargs)
         crypto_portfolio_maker = PortfolioMaker(assets_type='crypto', user=self.request.user,
                                                 assets=context['object_list'])
         portfolio = crypto_portfolio_maker.portfolio
-        context['balance'] = portfolio.get_info_about_portfolio()
+        context['balance'] = portfolio
         context['assets'] = portfolio.get_info_about_assets()
-        # write_in_db_portfolio_balance()
 
         return context | context_from_mixin
 
 
-class PersonCryptoEdit(UpdateView, DataMixin):
+class PersonCryptoEdit(UpdateView, DataMixinMenu):
     model = PersonsCrypto
     template_name = 'crypto/person_crypto_edit.html'
     fields = ['token', 'lot', 'average_price_in_rub', 'average_price_in_usd']
@@ -51,15 +51,14 @@ class PersonCryptoEdit(UpdateView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context_from_mixin = self.get_user_context(**kwargs)
+        context_from_mixin = self.get_user_menu(**kwargs)
         return context | context_from_mixin
 
 
-class PersonCryptoTransaction(ListView, DataMixin):
+class PersonCryptoTransaction(ListView, DataMixinMenu):
     model = PersonsTransactions
     paginate_by = 20
     ordering = ['-date_operation']
-    # ПОЧЕМУ НЕ РАБОТАТЕ ААА
 
     def get_queryset(self):
         queryset = PersonsTransactions.objects.filter(user=self.request.user)
@@ -78,11 +77,11 @@ class PersonCryptoTransaction(ListView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context_from_mixin = self.get_user_context(**kwargs)
+        context_from_mixin = self.get_user_menu(**kwargs)
         return context | context_from_mixin
 
 
-class PersonCryptoTransactionEdit(UpdateView, DataMixin):
+class PersonCryptoTransactionEdit(UpdateView, DataMixinMenu):
     model = PersonsTransactions
     template_name = 'crypto/person_crypto_transaction_edit.html'
     fields = ['token_1', 'token_2', 'is_buy_or_sell', 'lot', 'price_in_rub', 'price_in_usd', 'date_operation']
@@ -90,7 +89,7 @@ class PersonCryptoTransactionEdit(UpdateView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context_from_mixin = self.get_user_context(**kwargs)
+        context_from_mixin = self.get_user_menu(**kwargs)
         return context | context_from_mixin
 
     def form_valid(self, form):
@@ -106,7 +105,7 @@ class PersonCryptoTransactionEdit(UpdateView, DataMixin):
         return data
 
 
-class PersonCryptoTransactionDelete(DeleteView, DataMixin):
+class PersonCryptoTransactionDelete(DeleteView, DataMixinMenu):
     model = PersonsTransactions
     success_url = reverse_lazy('crypto:person_crypto_transactions')
     template_name = 'crypto/confirm_delete.html'

@@ -13,28 +13,28 @@ from rest_framework.response import Response
 from deposits.forms import RegisterUserForm, LoginUserForm
 from deposits.models import PersonsDeposits, PersonDepositsTransactions
 from deposits.serializers import PersonsDepositsSerializer, PersonsDepositsTransactionsSerializer
-from .utils import menu, DataMixin
+from .utils import menu, DataMixinMenu
 
 
 #-----------------------DJANGO______________________________
-class HomePage(DataMixin, ListView):
+class HomePage(DataMixinMenu, ListView):
     template_name = 'base.html'
     model = PersonsDeposits
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_context = self.get_user_context(title='Главная страница')
+        user_context = self.get_user_menu(title='Главная страница')
         return context | user_context
 
 
-class RegisterUser(DataMixin, CreateView):
+class RegisterUser(DataMixinMenu, CreateView):
     form_class = RegisterUserForm
     template_name = 'deposits/register.html'
     success_url = reverse_lazy('login')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_context = self.get_user_context(title='Регистрация')
+        user_context = self.get_user_menu(title='Регистрация')
         return context | user_context
 
     def form_valid(self, form):
@@ -43,13 +43,13 @@ class RegisterUser(DataMixin, CreateView):
         return redirect('home')
 
 
-class LoginUser(DataMixin, LoginView):
+class LoginUser(DataMixinMenu, LoginView):
     form_class = LoginUserForm
     template_name = 'deposits/login.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_context = self.get_user_context(title='Авторизация')
+        user_context = self.get_user_menu(title='Авторизация')
         return context | user_context
 
     def get_success_url(self):

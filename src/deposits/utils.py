@@ -7,8 +7,9 @@ menu = [
 ]
 
 
-class DataMixin:
-    def get_user_context(self, **kwargs):
+class DataMixinMenu:
+    def get_user_menu(self, **kwargs):
         context = kwargs
         context['menu'] = menu
         return context
+

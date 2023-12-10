@@ -3,6 +3,14 @@ from stocks.models import StockInvest, Share, Bond, Etf, Currency, UserShare, Us
     UserBond, UserEtf, UserShareTransaction, UserBondTransaction, UserCurrencyTransaction, UserEtfTransaction
 
 
+class Stock:
+    pass
+
+
+class Crypto:
+    pass
+
+
 class PortfolioConfig:
     # параметр, который идет в метод 'round'
     ROUND_DIGIT = 1

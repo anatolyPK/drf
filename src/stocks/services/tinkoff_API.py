@@ -71,14 +71,10 @@ class TinkoffAPI:
     @tinkoff_client
     def get_last_price_asset(cls, client, *, figi: list[str] = None) -> dict[str: float]:
         """Возвращает котировки переданных активов, а также usd/rub.
-        Без аргументов возвращает usd/rub"""
+        Без аргументов возвращает None"""
         if figi is None:
-            figi = list()
-        figi.append(USD_RUB_FIGI)  # usd/rub
+            return None
         assets = client.market_data.get_last_prices(figi=figi)
-        logger_debug.debug(f'figi {figi}')
-        dcta = {asset.figi: convert_tinkoff_money_in_currency(asset.price) for asset in assets.last_prices}
-        logger_debug.debug(f'PRICE {dcta}')
         return {asset.figi: convert_tinkoff_money_in_currency(asset.price) for asset in assets.last_prices}
 
     @classmethod

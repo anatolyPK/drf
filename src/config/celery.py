@@ -34,6 +34,11 @@ app.conf.beat_schedule ={
         'schedule': 30.0, #установить 10,0
     },
 
+    'update_cache_stocks_price': {
+        'task': 'stocks.tasks.update_cache_tickers_price',
+        'schedule': 30.0, #установить 10,0
+    },
+
     'update_coupons': {
         'task': 'stocks.tasks.refresh_coupons',
         'schedule': crontab(hour='18', minute='48'),

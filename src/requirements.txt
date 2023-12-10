@@ -9,3 +9,4 @@ tinkoff-investments==0.2.0b60
 python-dotenv==1.0.0
 flower==2.0.1
 django_celery_beat==2.5.0
+scipy==1.11.4
